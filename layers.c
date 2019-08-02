@@ -101,23 +101,17 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
           // Take sum of element-wise product
           #pragma omp parallel
           {
-            double localsum = 0.0;
-            #pragma omp for
+            #pragma omp for reduction(+:sum)
             for (int fy = 0; fy < filter->height; fy++) {
               int in_y = y + fy;
               for (int fx = 0; fx < filter->width; fx++) {
                 int in_x = x + fx;
                 if (in_y >= 0 && in_y < in->height && in_x >= 0 && in_x < in->width) {
                   for (int fd = 0; fd < filter->depth; fd++) {
-                    localsum += volume_get(filter, fx, fy, fd) * volume_get(in, in_x, in_y, fd);
+                    sum += volume_get(filter, fx, fy, fd) * volume_get(in, in_x, in_y, fd);
                   }
                 }
               }
-            }
-
-            #pragma omp critical
-            {
-              sum += localsum;
             }
           }
 
@@ -181,12 +175,17 @@ relu_layer_t* make_relu_layer(int input_width, int input_height, int input_depth
 // Applies the Rectifier Linear Unit (ReLU) function to the input, which sets
 // output(x, y, d) to max(0.0, input(x, y, d)).
 void relu_forward(relu_layer_t* l, volume_t** inputs, volume_t** outputs, int start, int end) {
-  for (int i = start; i <= end; i++) {
-    for (int x = 0; x < l->input_width; x++) {
-      for (int y = 0; y < l->input_height; y++) {
-        for (int d = 0; d < l->input_depth; d++) {
-          double value = (volume_get(inputs[i], x, y, d) < 0.0) ? 0.0 : volume_get(inputs[i], x, y, d);
-          volume_set(outputs[i], x, y, d, value);
+  #pragma omp parallel
+  {
+    #pragma omp for collapse(4)
+    for (int i = start; i <= end; i++) {
+      for (int x = 0; x < l->input_width; x++) {
+        for (int y = 0; y < l->input_height; y++) {
+          for (int d = 0; d < l->input_depth; d++) {
+            double temp = volume_get(inputs[i], x, y, d);
+            double value = (temp < 0.0) ? 0.0 : temp;
+            volume_set(outputs[i], x, y, d, value);
+          }
         }
       }
     }
