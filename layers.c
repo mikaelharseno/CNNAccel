@@ -102,7 +102,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
           #pragma omp parallel
           {
             double localsum = 0.0;
-            #pragma omp for collapse(3)
+            #pragma omp for
             for (int fy = 0; fy < filter->height; fy++) {
               int in_y = y + fy;
               for (int fx = 0; fx < filter->width; fx++) {
