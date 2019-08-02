@@ -56,23 +56,27 @@ network_t* make_network() {
 }
 
 void free_network(network_t* net) {
+  #pragma omp parallel for
   for (int i = 0; i < NUM_LAYERS + 1; i++) {
     free_volume(net->layers[i]);
   }
 
   // Free each conv layer's filters and biases
+  #pragma omp parallel for
   for (int f = 0; f < net->l0->output_depth; f++) {
     free_volume(net->l0->filters[f]);
   }
   free(net->l0->filters);
   free_volume(net->l0->biases);
 
+  #pragma omp parallel for
   for (int f = 0; f < net->l3->output_depth; f++) {
     free_volume(net->l3->filters[f]);
   }
   free(net->l3->filters);
   free_volume(net->l3->biases);
 
+  #pragma omp parallel for
   for (int f = 0; f < net->l6->output_depth; f++) {
     free_volume(net->l6->filters[f]);
   }
@@ -80,6 +84,7 @@ void free_network(network_t* net) {
   free_volume(net->l6->biases);
 
   // Free FC layer filters and biases
+  #pragma omp parallel for
   for (int f = 0; f < net->l9->output_depth; f++) {
     free_volume(net->l9->filters[f]);
   }
@@ -141,7 +146,7 @@ void net_forward(network_t* net, batch_t* b, int start, int end) {
 
 void net_classify(network_t* net, volume_t** input, double** likelihoods, int n) {
   batch_t* b = make_batch(net, 1);
-
+  
   for (int i = 0; i < n; i++) {
     copy_volume(b[0][0], input[i]);
     net_forward(net, b, 0, 0);
@@ -152,4 +157,3 @@ void net_classify(network_t* net, volume_t** input, double** likelihoods, int n)
 
   free_batch(b, 1);
 }
-

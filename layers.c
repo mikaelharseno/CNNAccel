@@ -99,17 +99,14 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
         for (int out_x = 0; out_x < l->output_width; x += stride, out_x++) {
           double sum = 0.0;
           // Take sum of element-wise product
-          #pragma omp parallel
-          {
-            #pragma omp for reduction(+:sum)
-            for (int fy = 0; fy < filter->height; fy++) {
-              int in_y = y + fy;
-              for (int fx = 0; fx < filter->width; fx++) {
-                int in_x = x + fx;
-                if (in_y >= 0 && in_y < in->height && in_x >= 0 && in_x < in->width) {
-                  for (int fd = 0; fd < filter->depth; fd++) {
-                    sum += volume_get(filter, fx, fy, fd) * volume_get(in, in_x, in_y, fd);
-                  }
+
+          for (int fy = 0; fy < filter->height; fy++) {
+            int in_y = y + fy;
+            for (int fx = 0; fx < filter->width; fx++) {
+              int in_x = x + fx;
+              if (in_y >= 0 && in_y < in->height && in_x >= 0 && in_x < in->width) {
+                for (int fd = 0; fd < filter->depth; fd++) {
+                  sum += volume_get(filter, fx, fy, fd) * volume_get(in, in_x, in_y, fd);
                 }
               }
             }
