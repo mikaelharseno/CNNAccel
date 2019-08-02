@@ -15,6 +15,7 @@
 
 #include "volume.h"
 
+//Probably some cache issues
 inline double volume_get(volume_t* v, int x, int y, int d) {
   return v->weights[((v->width * y) + x) * v->depth + d];
 }
@@ -31,6 +32,7 @@ volume_t* make_volume(int width, int height, int depth, double value) {
   new_vol->height = height;
   new_vol->depth  = depth;
 
+  #pragma omp parallel for collapse(3)
   for (int x = 0; x < width; x++) {
     for (int y = 0; y < height; y++) {
       for (int d = 0; d < depth; d++) {
@@ -60,4 +62,3 @@ void free_volume(volume_t* v) {
   free(v->weights);
   free(v);
 }
-
