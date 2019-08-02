@@ -97,18 +97,26 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
       for (int out_y = 0; out_y < l->output_height; y += stride, out_y++) {
         int x = -l->pad;
         for (int out_x = 0; out_x < l->output_width; x += stride, out_x++) {
-
-          // Take sum of element-wise product
           double sum = 0.0;
-          for (int fy = 0; fy < filter->height; fy++) {
-            int in_y = y + fy;
-            for (int fx = 0; fx < filter->width; fx++) {
-              int in_x = x + fx;
-              if (in_y >= 0 && in_y < in->height && in_x >= 0 && in_x < in->width) {
-                for (int fd = 0; fd < filter->depth; fd++) {
-                  sum += volume_get(filter, fx, fy, fd) * volume_get(in, in_x, in_y, fd);
+          // Take sum of element-wise product
+          #pragma omp parallel
+          {
+            double localsum = 0.0;
+            #pragma omp for collapse(3)
+            for (int fy = 0; fy < filter->height; fy++) {
+              int in_y = y + fy;
+              for (int fx = 0; fx < filter->width; fx++) {
+                int in_x = x + fx;
+                if (in_y >= 0 && in_y < in->height && in_x >= 0 && in_x < in->width) {
+                  for (int fd = 0; fd < filter->depth; fd++) {
+                    localsum += volume_get(filter, fx, fy, fd) * volume_get(in, in_x, in_y, fd);
+                  }
                 }
               }
+            }
+
+            #pragma omp critical {
+              sum += localsum;
             }
           }
 
@@ -367,4 +375,3 @@ void softmax_forward(softmax_layer_t* l, volume_t** inputs, volume_t** outputs, 
     }
   }
 }
-
