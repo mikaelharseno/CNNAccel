@@ -148,6 +148,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
           //   return;
           // }
           //_mm_store_pd((double*) doublearray, total);
+          double doublearray[2] __attribute__((aligned(16)));
           for (int fy = 0; fy < filh; fy++) {
             int in_y = y + fy;
             for (int fx = 0; fx < filw; fx++) {
@@ -163,9 +164,10 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
                   //* inw[((inwidth * in_y) + in_x) * indepth + fd];
                   //doublearray[1] += filtw[((filw * fy) + fx) * indepth + fd+1]
                   //* inw[((inwidth * in_y) + in_x) * indepth + fd+1];
-                  double doublearray[2] __attribute__((aligned(16)));
                   __m128d filterm = _mm_load_pd((filtw+((filw * fy) + fx) * indepth + fd));
+                  printf("Success loading 1\n");
                   __m128d inm = _mm_load_pd((inw+((inwidth * in_y) + in_x) * indepth + fd));
+                  printf("Success loading 2\n");
                   __m128d mult = _mm_mul_pd(filterm, inm);
                   //total = temp;
                   /*sum = sum + doublearray[0];
