@@ -139,7 +139,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
           if (addr % 16 != 0) {
             addr += 16 - addr % 16;
           }
-          doublearray = (double *)addr;
+          double* doublearray = (double *)addr;
           //doublearray = (doublearray + (16 - 1)) & -16;
           //double * doublearray = aligntonext(meme, 4);
           if (((size_t)(doublearray) & 0xF) == 0) {
