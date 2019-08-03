@@ -134,7 +134,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
           __m128d total = _mm_setzero_pd();
           //__m128d temp = _mm_setzero_pd();
           //__m128i zero = _mm_setzero_si128();
-          double* darray = malloc(20*sizeof(double));
+          double darray[10];
           uintptr_t addr = (uintptr_t) darray;
           if (addr % 16 != 0) {
             addr += 16 - addr % 16;
@@ -166,9 +166,9 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
                   //total = temp;
                   __m128d total = _mm_add_pd(total, mult);
                   printf("%x\n", (unsigned int) doublearray);
-                  _mm_store_pd(doublearray, total);
+                  _mm_storeu_pd(doublearray, total);
                   printf("%x\n", (unsigned int) doublearray);
-                  sum = sum + doublearray[0];
+                  //sum = sum + doublearray[0];
                   //sum = sum + doublearray[1];
                 }
                 for (int fd = indepth/2*2; fd < indepth; fd++) {
