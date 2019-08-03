@@ -132,7 +132,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 					//int y = negpad + out_y * stride;
 					double sum = thisbias;
           __m128d total = _mm_setzero_pd();
-          __m128d temp = _mm_setzero_pd();
+          //__m128d temp = _mm_setzero_pd();
           __m128d zero = _mm_setzero_pd();
           double doublearray[2];
           doublearray[0] = 0.0;
@@ -154,7 +154,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
                   __m128d inm = _mm_load_pd((inw+((inwidth * in_y) + in_x) * indepth + fd));
                   __m128d mult = _mm_mul_pd(filterm, inm);
                   //total = temp;
-                  temp = _mm_add_pd(total, mult);
+                  __m128d temp = _mm_add_pd(total, mult);
                   _mm_store_pd((double*) doublearray, (__m128d) temp);
                 }
                 for (int fd = indepth/2*2; fd < indepth; fd++) {
