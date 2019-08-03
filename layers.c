@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <assert.h>
 
 // Include SSE intrinsics
 #if defined(_MSC_VER)
@@ -136,7 +135,10 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
           //__m128d temp = _mm_setzero_pd();
           __m128i zero = _mm_setzero_si128();
           double doublearray[5];
-          ASSERT( ((size_t)(doublearray) & 0xF) == 0);
+          if (((size_t)(doublearray) & 0xF) == 0) {
+            printf("Not 16 byte aligned\n");
+            return;
+          }
           //_mm_store_pd((double*) doublearray, total);
           for (int fy = 0; fy < filh; fy++) {
             int in_y = y + fy;
