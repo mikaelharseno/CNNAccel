@@ -210,7 +210,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
           //return;
           //double bang = sum;
           //outw[((outwidth * out_y) + out_x) * outdepth + f] = sum;
-          volume_set(out, 0, 0, 0, sum);
+          //volume_set(out, 0, 0, 0, sum);
 
           //return;
 
