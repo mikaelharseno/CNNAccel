@@ -134,9 +134,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
           __m128d total = _mm_setzero_pd();
           //__m128d temp = _mm_setzero_pd();
           __m128d zero = _mm_setzero_pd();
-          double doublearray[2];
-          doublearray[0] = 0.0;
-          doublearray[1] = 0.0;
+          double* doublearray = malloc(3 * sizeof(double));
           //_mm_store_pd((double*) doublearray, total);
           for (int fy = 0; fy < filh; fy++) {
             int in_y = y + fy;
@@ -155,7 +153,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
                   __m128d mult = _mm_mul_pd(filterm, inm);
                   //total = temp;
                   total = _mm_add_pd(total, mult);
-                  //_mm_store_pd((double*) doublearray, (__m128d) temp);
+                  _mm_storeu_pd((double*) doublearray, (__m128d) total);
                 }
                 for (int fd = indepth/2*2; fd < indepth; fd++) {
                   sum += filtw[((filw * fy) + fx) * indepth + fd]
@@ -166,7 +164,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
           }
 
           //_mm_store_pd((double*) doublearray, (__m128d) total);
-          _mm_storeu_pd((double*) doublearray, (__m128d) total);
+          //_mm_storeu_pd((double*) doublearray, (__m128d) total);
 
           sum = sum + doublearray[0];
           sum = sum + doublearray[1];
