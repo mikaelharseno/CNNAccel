@@ -134,7 +134,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
           __m128d total = _mm_setzero_pd();
           //__m128d temp = _mm_setzero_pd();
           //__m128i zero = _mm_setzero_si128();
-          double darray[10];
+          double* darray = malloc(20*sizeof(double));
           uintptr_t addr = (uintptr_t) darray;
           if (addr % 16 != 0) {
             addr += 16 - addr % 16;
