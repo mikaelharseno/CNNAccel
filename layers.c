@@ -109,12 +109,15 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
   for (int i = start; i <= end; i++) {
     volume_t* in  = inputs[i];
     volume_t* out = outputs[i];
+    double* inw = in->weights;
 
 
 //		#pragma omp parallel for
     for (int f = 0; f < outdepth; f++) {
       volume_t* filter = filts[f];
 			double thisbias = biases[f];
+      double* filtw = filter->weights;
+
       //int y_start = -l->pad;
       //int x_start = -l->pad;
 			//int y = y_start;
@@ -126,18 +129,33 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
           //int x = negpad + out_x * stride;
 					//int y = negpad + out_y * stride;
 					double sum = thisbias;
+          double doublearray[2];
+          __m128d total = _mm_setzero_pd();
           for (int fy = 0; fy < filh; fy++) {
             int in_y = y + fy;
             for (int fx = 0; fx < filw; fx++) {
               int in_x = x + fx;
               if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
-                for (int fd = 0; fd < indepth; fd++) {
-                  sum += filter->weights[((filw * fy) + fx) * indepth + fd]
-                  * in->weights[((inwidth * in_y) + in_x) * indepth + fd];
+                for (int fd = 0; fd < indepth/2*2; fd = fd + 2) {
+                  //filter->weights[((filw * fy) + fx) * indepth + fd]
+                  //* in->weights[((inwidth * in_y) + in_x) * indepth + fd];
+                  __m128d filterm = _mm_loadu_si128((__m128d*) (filtw+((filw * fy) + fx) * indepth + fd));
+                  __m128d inm = _mm_loadu_si128((__m128d*) (inw+((inwidth * in_y) + in_x) * indepth + fd));
+                  __m128d mult = _mm_mul_pd(filterm, inm);
+                  total = _mm_add_pd(total, mult);
+                }
+                for (int fd = indepth/2*2; fd < indepth; fd++) {
+                  sum += filtw[((filw * fy) + fx) * indepth + fd]
+                  * inw[((inwidth * in_y) + in_x) * indepth + fd];
                 }
               }
             }
           }
+
+          _mm_store_pd(doublearray, total);
+
+          sum = sum + doublearray[0];
+          sum = sum + doublearray[1];
 
           out->weights[((outwidth * out_y) + out_x) * outdepth + f] = sum;
 
