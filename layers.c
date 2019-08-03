@@ -170,9 +170,11 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
                   sum = sum + doublearray[0];
                   printf("%x\n", (unsigned int) doublearray);*/
                   //total = _mm_add_pd(total, mult);
+                  printf("Sum:%lf\n",sum);
                   _mm_store_pd(doublearray, mult);
                   sum = sum + doublearray[0];
                   sum = sum + doublearray[1];
+                  printf("Sum:%lf\n",sum);
                   //printf("%x\n", (unsigned int) doublearray);
                   //_mm_storeu_pd(doubarray, total);
                   //printf("%x\n", (unsigned int) doublearray);
@@ -184,9 +186,9 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
                 }
                 //return;
                 for (int fd = indepth/2*2; fd < indepth; fd++) {
-                  sum += filtw[((filw * fy) + fx) * indepth + fd]
-                  * inw[((inwidth * in_y) + in_x) * indepth + fd];
+                  sum += filtw[((filw * fy) + fx) * indepth + fd] * inw[((inwidth * in_y) + in_x) * indepth + fd];
                 }
+                printf("Sum:%lf\n",sum);
               }
               //return;
             }
@@ -195,7 +197,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
             //return;
           }
 
-          //printf("Sum:%lf\n",sum);
+          printf("Sum:%lf\n",sum);
 
           //return;
 
