@@ -166,7 +166,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
                   //total = temp;
                   _mm_store_pd(doublearray, total);
                   printf("%x\n", (unsigned int) doublearray);
-                  __m128d total = _mm_add_pd(temp, mult);
+                  __m128d total = _mm_add_pd(total, mult);
                   _mm_store_pd(doublearray, total);
                   printf("%x\n", (unsigned int) doublearray);
                   //_mm_storeu_pd(doubarray, total);
