@@ -134,12 +134,13 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
           __m128d total = _mm_setzero_pd();
           __m128d temp = _mm_setzero_pd();
           __m128d zero = _mm_setzero_pd();
-          double darray[10];
-          uintptr_t addr = (uintptr_t) darray;
-          if (addr % 16 != 0) {
-            addr += 16 - addr % 16;
-          }
-          double* doublearray = (double *)addr;
+          // double darray[10];
+          // uintptr_t addr = (uintptr_t) darray;
+          // if (addr % 16 != 0) {
+          //   addr += 16 - addr % 16;
+          // }
+          // double* doublearray = (double *)addr;
+          double doublearray[2] __attribute__((aligned(16)));
           //doublearray = (doublearray + (16 - 1)) & -16;
           //double * doublearray = aligntonext(meme, 4);
           if (((size_t)(doublearray) & 0xF) != 0) {
@@ -181,7 +182,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
                   //sum = sum + doublearray[1];
 
                 }
-                //return;
+                return;
                 for (int fd = indepth/2*2; fd < indepth; fd++) {
                   sum += filtw[((filw * fy) + fx) * indepth + fd]
                   * inw[((inwidth * in_y) + in_x) * indepth + fd];
