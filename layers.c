@@ -212,9 +212,10 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 
           x += stride;
         }
+        return;
         y += stride;
       }
-      return;
+      //return;
     }
   }
 }
