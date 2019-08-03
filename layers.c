@@ -133,6 +133,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 					double sum = thisbias;
           __m128d total = _mm_setzero_pd();
           __m128d temp = _mm_setzero_pd();
+          __m128d zero = _mm_setzero_pd();
           //_mm_store_pd((double*) doublearray, total);
           for (int fy = 0; fy < filh; fy++) {
             int in_y = y + fy;
@@ -150,7 +151,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
                   __m128d inm = _mm_load_pd((inw+((inwidth * in_y) + in_x) * indepth + fd));
                   __m128d mult = _mm_mul_pd(filterm, inm);
                   temp = _mm_add_pd(total, mult);
-                  //total = temp;
+                  total = _mm_add_pd(temp, zero);
                 }
                 for (int fd = indepth/2*2; fd < indepth; fd++) {
                   sum += filtw[((filw * fy) + fx) * indepth + fd]
