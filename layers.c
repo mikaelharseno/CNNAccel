@@ -188,9 +188,11 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
                   * inw[((inwidth * in_y) + in_x) * indepth + fd];
                 }
               }
-              return;
+              //return;
             }
-            //return;
+            _mm_store_pd(doublearray, total);
+            sum = sum + doublearray[0];
+            return;
           }
 
           return;
