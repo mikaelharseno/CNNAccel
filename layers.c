@@ -162,8 +162,8 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 
           _mm_store_pd(doublearray, total);
 
-          sum = sum + doublearray[0];
-          sum = sum + doublearray[1];
+          //sum = sum + doublearray[0];
+          //sum = sum + doublearray[1];
 
           outw[((outwidth * out_y) + out_x) * outdepth + f] = sum;
 
