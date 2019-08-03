@@ -111,6 +111,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
     volume_t* in  = inputs[i];
     volume_t* out = outputs[i];
     double* inw = in->weights;
+    double* outw = out->weights;
 
 
 //		#pragma omp parallel for
@@ -131,106 +132,43 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 					//int y = negpad + out_y * stride;
 					double sum = thisbias;
           __m128d total = _mm_setzero_pd();
-          __m128d temp = _mm_setzero_pd();
-          __m128d zero = _mm_setzero_pd();
-          // double darray[10];
-          // uintptr_t addr = (uintptr_t) darray;
-          // if (addr % 16 != 0) {
-          //   addr += 16 - addr % 16;
-          // }
-          // double* doublearray = (double *)addr;
-          //double doublearray[2] __attribute__((aligned(16)));
-          //doublearray = (doublearray + (16 - 1)) & -16;
-          //double * doublearray = aligntonext(meme, 4);
-          // if (((size_t)(doublearray) & 0xF) != 0) {
-          //   printf("%x\n", (unsigned int) doublearray);
-          //   printf("Not 16 byte aligned\n");
-          //   return;
-          // }
-          //_mm_store_pd((double*) doublearray, total);
+
           double doublearray[2] __attribute__((aligned(16)));
           for (int fy = 0; fy < filh; fy++) {
             int in_y = y + fy;
             for (int fx = 0; fx < filw; fx++) {
               int in_x = x + fx;
               printf("Start new day \n");
-              //if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
-              if (in_y >= 0 && in_y < in->height && in_x >= 0 && in_x < in->width) {
+              if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
                 printf("If satisfied \n");
                 printf("Filter depth:%d",indepth);
                 for (int fd = 0; fd < indepth/2*2; fd = fd + 2) {
-                  printf("Success loading 0\n");
                   //filter->weights[((filw * fy) + fx) * indepth + fd]
                   //* in->weights[((inwidth * in_y) + in_x) * indepth + fd];
-                  //doublearray[0] += filtw[((filw * fy) + fx) * indepth + fd]
-                  //* inw[((inwidth * in_y) + in_x) * indepth + fd];
-                  //doublearray[1] += filtw[((filw * fy) + fx) * indepth + fd+1]
-                  //* inw[((inwidth * in_y) + in_x) * indepth + fd+1];
-                  __m128d filterm = _mm_loadu_pd(filter->weights + (int) (((filter->width * fy) + fx) * filter->depth + fd));
-                  printf("Success loading 1\n");
+                  __m128d filterm = _mm_loadu_pd(filtw + (int) (((filw * fy) + fx) * filh + fd));
                   __m128d inm = _mm_loadu_pd((inw+((inwidth * in_y) + in_x) * indepth + fd));
-                  printf("Success loading 2\n");
                   __m128d mult = _mm_mul_pd(filterm, inm);
-                  //total = temp;
-                  /*sum = sum + doublearray[0];
-                  _mm_store_pd(doublearray, total);
-                  sum = sum + doublearray[0];
-                  printf("%x\n", (unsigned int) doublearray);*/
-                  //total = _mm_add_pd(total, mult);
-                  printf("Sum:%lf\n",sum);
-                  _mm_store_pd(doublearray, mult);
-                  sum = sum + doublearray[0];
-                  sum = sum + doublearray[1];
-                  printf("Sum:%lf\n",sum);
-                  //printf("%x\n", (unsigned int) doublearray);
-                  //_mm_storeu_pd(doubarray, total);
-                  //printf("%x\n", (unsigned int) doublearray);
-                  //total = _mm_add_pd(total, mult);
-                  //_mm_store_pd(doublearray, total);
-                  //sum = sum + doublearray[0];
-                  //sum = sum + doublearray[1];
+                  total = _mm_add_pd(total, mult);
 
                 }
-                //return;
                 for (int fd = indepth/2*2; fd < indepth; fd++) {
                   sum += filtw[((filw * fy) + fx) * indepth + fd] * inw[((inwidth * in_y) + in_x) * indepth + fd];
                 }
-                printf("Sum:%lf\n",sum);
               }
-              //return;
             }
-            //_mm_store_pd(doublearray, total);
-            //sum = sum + doublearray[0];
-            //return;
           }
 
-          printf("Sum:%lf\n",sum);
+          _mm_store_pd(doublearray, total);
 
-          //return;
+          sum = sum + doublearray[0];
+          sum = sum + doublearray[1];
 
-          //_mm_store_pd(doublearray, total);
-          //_mm_storeu_pd((double*) doublearray, (__m128d) total);
-          //_mm_storeu_pd((double*) doublearray, (__m128d) total);
-          //ASSERT( ((size_t)(doublearray) & 0xF) == 0);
-          //__m128i tostore = _mm_add_epi32((__m128i) total, zero);
-          //_mm_storeu_si128((__m128i*) doublearray, tostore);
-
-          //sum = sum + doublearray[0];
-          //sum = sum + doublearray[1];
-
-          //return;
-          //double bang = sum;
-          out->weights[((out->width * out_y) + out_x) * out->depth + f] = 0.0;
-          //volume_set(out, 0, 0, 0, sum);
-
-          //return;
+          outw[((outwidth * out_y) + out_x) * outdepth + f] = sum;
 
           x += stride;
         }
-        //return;
         y += stride;
       }
-      //return;
     }
   }
 }
