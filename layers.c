@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <assert.h>
 
 // Include SSE intrinsics
 #if defined(_MSC_VER)
