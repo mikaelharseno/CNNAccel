@@ -143,11 +143,11 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
           //double doublearray[2] __attribute__((aligned(16)));
           //doublearray = (doublearray + (16 - 1)) & -16;
           //double * doublearray = aligntonext(meme, 4);
-          if (((size_t)(doublearray) & 0xF) != 0) {
-            printf("%x\n", (unsigned int) doublearray);
-            printf("Not 16 byte aligned\n");
-            return;
-          }
+          // if (((size_t)(doublearray) & 0xF) != 0) {
+          //   printf("%x\n", (unsigned int) doublearray);
+          //   printf("Not 16 byte aligned\n");
+          //   return;
+          // }
           //_mm_store_pd((double*) doublearray, total);
           for (int fy = 0; fy < filh; fy++) {
             int in_y = y + fy;
