@@ -111,7 +111,6 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
     volume_t* in  = inputs[i];
     volume_t* out = outputs[i];
     double* inw = in->weights;
-    double* outw = out->weights;
 
 
 //		#pragma omp parallel for
@@ -125,9 +124,9 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 			//int y = y_start;
 			//#pragma omp parallel for collapse(2)
 			int y = negpad;
-      for (int out_y = 0; out_y < outheight; out_y++) {
+      for (int out_y = 0; out_y < l->output_height; out_y++) {
         int x = negpad;
-				for (int out_x = 0; out_x < outwidth; out_x++) {
+				for (int out_x = 0; out_x < l->output_width; out_x++) {
           //int x = negpad + out_x * stride;
 					//int y = negpad + out_y * stride;
 					double sum = thisbias;
@@ -209,9 +208,9 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
           //sum = sum + doublearray[1];
 
           //return;
-          double bang = sum;
+          //double bang = sum;
           //outw[((outwidth * out_y) + out_x) * outdepth + f] = sum;
-          //volume_set(out, out_x, out_y, f, sum);
+          volume_set(out, 0, 0, 0, sum);
 
           //return;
 
