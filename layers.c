@@ -107,7 +107,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 
 	//#pragma omp parallel for
   for (int i = start; i <= end; i++) {
-    double doublearray[3];
+    double doublearray[2];
     volume_t* in  = inputs[i];
     volume_t* out = outputs[i];
     double* inw = in->weights;
@@ -160,7 +160,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
             }
           }
 
-          //_mm_store_pd(doublearray, total);
+          _mm_store_pd((__m128d*) doublearray, total);
 
           sum = sum + doublearray[0];
           sum = sum + doublearray[1];
