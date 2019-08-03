@@ -102,7 +102,6 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 	int filh = l->filter_height;
 	int filw = l->filter_width;
 	double* biases = l->biases->weights;
-  double sum;
 
 //	int tempfy;
 
@@ -130,7 +129,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 				for (int out_x = 0; out_x < l->output_width; out_x++) {
           //int x = negpad + out_x * stride;
 					//int y = negpad + out_y * stride;
-					sum = thisbias;
+					double sum = thisbias;
           __m128d total = _mm_setzero_pd();
           __m128d temp = _mm_setzero_pd();
           __m128d zero = _mm_setzero_pd();
@@ -195,6 +194,8 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
             //sum = sum + doublearray[0];
             //return;
           }
+
+          printf("Sum:%lf\n",sum);
 
           //return;
 
