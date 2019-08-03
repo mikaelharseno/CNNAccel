@@ -135,6 +135,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
           //__m128d temp = _mm_setzero_pd();
           __m128i zero = _mm_setzero_si128();
           double doublearray[5];
+          ASSERT( ((size_t)(doublearray) & 0xF) == 0);
           //_mm_store_pd((double*) doublearray, total);
           for (int fy = 0; fy < filh; fy++) {
             int in_y = y + fy;
@@ -168,9 +169,10 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
           //_mm_store_pd((double*) doublearray, (__m128d) total);
           //_mm_storeu_pd((double*) doublearray, (__m128d) total);
           //_mm_storeu_pd((double*) doublearray, (__m128d) total);
-          __m128i tostore = _mm_add_epi32((__m128i) total, zero);
-          printf("This happened. \n");
-          _mm_storeu_si128((__m128i*) doublearray, tostore);
+          //ASSERT( ((size_t)(doublearray) & 0xF) == 0);
+          //__m128i tostore = _mm_add_epi32((__m128i) total, zero);
+          //printf("This happened. \n");
+          //_mm_storeu_si128((__m128i*) doublearray, tostore);
 
           //sum = sum + doublearray[0];
           //sum = sum + doublearray[1];
