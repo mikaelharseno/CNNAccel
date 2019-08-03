@@ -142,6 +142,8 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
                  for (int fd = 0; fd < indepth/2*2; fd = fd + 2) {
                    //filter->weights[((filw * fy) + fx) * indepth + fd]
                    //* in->weights[((inwidth * in_y) + in_x) * indepth + fd];
+                   printf("fd: %d\n",fd);
+                   printf("doub: %x\n",sizeof(double));
                    printf("%x\n",&(filtw[((filw * fy) + fx) * indepth + fd]));
                    printf("%x\n",&(inw[((inwidth * in_y) + in_x) * indepth + fd]));
                    __m128d filterm = _mm_load_pd(&(filtw[((filw * fy) + fx) * indepth + fd]));
