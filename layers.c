@@ -134,7 +134,8 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
           __m128d total = _mm_setzero_pd();
           //__m128d temp = _mm_setzero_pd();
           __m128i zero = _mm_setzero_si128();
-          double doublearray[5];
+          double meme[10];
+          double * doublearray = aligntonext(meme, 4);
           if (((size_t)(doublearray) & 0xF) == 0) {
             printf("Not 16 byte aligned\n");
             return;
@@ -169,12 +170,11 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
             }
           }
 
-          //_mm_store_pd((double*) doublearray, (__m128d) total);
+          _mm_store_pd(doublearray, total);
           //_mm_storeu_pd((double*) doublearray, (__m128d) total);
           //_mm_storeu_pd((double*) doublearray, (__m128d) total);
           //ASSERT( ((size_t)(doublearray) & 0xF) == 0);
           //__m128i tostore = _mm_add_epi32((__m128i) total, zero);
-          //printf("This happened. \n");
           //_mm_storeu_si128((__m128i*) doublearray, tostore);
 
           //sum = sum + doublearray[0];
