@@ -157,7 +157,9 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
               //if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
               if (in_y >= 0 && in_y < in->height && in_x >= 0 && in_x < in->width) {
                 printf("If satisfied \n");
+                printf("Filter depth:%d",indepth);
                 for (int fd = 0; fd < indepth/2*2; fd = fd + 2) {
+                  printf("Success loading 0\n");
                   //filter->weights[((filw * fy) + fx) * indepth + fd]
                   //* in->weights[((inwidth * in_y) + in_x) * indepth + fd];
                   //doublearray[0] += filtw[((filw * fy) + fx) * indepth + fd]
