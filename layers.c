@@ -98,6 +98,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 	int filh = l->filter_height;
 	int filw = l->filter_width;
 	double* biases = l->biases->weights;
+  int realdep = (indepth + (4 - (indepth % 4)));
 
 //	int tempfy;
 
@@ -128,7 +129,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 
           __m128d total = _mm_setzero_pd();
 
-          double doublearray[2] __attribute__((aligned(16)));
+          double doublearray[4] __attribute__((aligned(32)));
 
           for (int fy = 0; fy < filh; fy++) {
             int in_y = y + fy;
@@ -139,27 +140,27 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
                   sum += filter->weights[((filw * fy) + fx) * indepth + fd]
                   * in->weights[((inwidth * in_y) + in_x) * indepth + fd];
                 }*/
-                 for (int fd = 0; fd < indepth/2*2; fd = fd + 2) {
+                 for (int fd = 0; fd < indepth/4*4; fd = fd + 4) {
                    //filter->weights[((filw * fy) + fx) * indepth + fd]
                    //* in->weights[((inwidth * in_y) + in_x) * indepth + fd];
                    //printf("fd: %d\n",fd);
                    //printf("doub: %x\n",sizeof(double));
-                   //printf("%x\n",&(filtw[(((filw * fy) + fx) * (indepth + indepth % 2) + fd)]));
-                   //printf("%x\n",&(inw[(((inwidth * in_y) + in_x) * (indepth + indepth % 2) + fd)]));
-                   __m128d filterm = _mm_load_pd(&(filtw[(((filw * fy) + fx) * (indepth + indepth % 2) + fd)]));
-                   __m128d inm = _mm_load_pd(&(inw[(((inwidth * in_y) + in_x) * (indepth + indepth % 2) + fd)]));
-                   __m128d mult = _mm_mul_pd(filterm, inm);
-                   total = _mm_add_pd(total, mult);
+                   //printf("%x\n",&(filtw[(((filw * fy) + fx) * realdep + fd)]));
+                   //printf("%x\n",&(inw[(((inwidth * in_y) + in_x) * realdep + fd)]));
+                   //__m128d filterm = _mm_loadu_pd(&(filtw[(((filw * fy) + fx) * realdep + fd)]));
+                   //__m128d inm = _mm_loadu_pd(&(inw[(((inwidth * in_y) + in_x) * realdep + fd)]));
+                   //__m128d mult = _mm_mul_pd(filterm, inm);
+                   //total = _mm_add_pd(total, mult);
 
                    /*sum += filter->weights[((filw * fy) + fx) * indepth + fd]
                    * in->weights[((inwidth * in_y) + in_x) * indepth + fd];
                    sum += filter->weights[((filw * fy) + fx) * indepth + fd+1]
                    * in->weights[((inwidth * in_y) + in_x) * indepth + fd+1];*/
                  }
-                 for (int fd = indepth/2*2; fd < indepth; fd++) {
+                 for (int fd = 0; fd < indepth; fd++) {
                    //sum += filtw[((filw * fy) + fx) * indepth + fd] * inw[((inwidth * in_y) + in_x) * indepth + fd];
-										sum += filtw[(((filw * fy) + fx) * (indepth + indepth % 2) + fd)]
-										* inw[(((inwidth * in_y) + in_x) * (indepth + indepth % 2) + fd)];
+										sum += filtw[(((filw * fy) + fx) * realdep + fd)]
+										* inw[(((inwidth * in_y) + in_x) * realdep + fd)];
                  }
 
               }
