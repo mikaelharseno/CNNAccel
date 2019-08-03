@@ -134,8 +134,9 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
           __m128d total = _mm_setzero_pd();
           //__m128d temp = _mm_setzero_pd();
           __m128i zero = _mm_setzero_si128();
-          double meme[10];
-          double * doublearray = aligntonext(meme, 4);
+          double doublearray[10];
+          doublearray = (doublearray + (16 - 1)) & -16;
+          //double * doublearray = aligntonext(meme, 4);
           if (((size_t)(doublearray) & 0xF) == 0) {
             printf("Not 16 byte aligned\n");
             return;
