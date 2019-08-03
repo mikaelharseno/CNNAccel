@@ -90,21 +90,42 @@ conv_layer_t* make_conv_layer(int input_width, int input_height, int input_depth
 // 2. FInd out if any data can be restructured
 // 3. Cache blocking / Loop unrolling
 void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int start, int end) {
+  int stride = l->stride;
+	volume_t** filts = l->filters;
+	int negpad = -l->pad;
+	int indepth = l->input_depth;
+	int inheight = l->input_height;
+	int inwidth = l->input_width;
+	int outdepth = l->output_depth;
+	int outheight = l->output_height;
+	int outwidth = l->output_width;
+	int filh = l->filter_height;
+	int filw = l->filter_width;
+	double* biases = l->biases->weights;
+
+//	int tempfy;
+
+	//#pragma omp parallel for
   for (int i = start; i <= end; i++) {
     volume_t* in  = inputs[i];
     volume_t* out = outputs[i];
 
-    int stride = l->stride;
 
-    for (int f = 0; f < l->output_depth; f++) {
-      volume_t* filter = l->filters[f];
-      int y = -l->pad;
-      for (int out_y = 0; out_y < l->output_height; y += stride, out_y++) {
-        int x = -l->pad;
-        for (int out_x = 0; out_x < l->output_width; x += stride, out_x++) {
-
-          // Take sum of element-wise product
-          double sum = 0.0;
+//		#pragma omp parallel for
+    for (int f = 0; f < outdepth; f++) {
+      volume_t* filter = filts[f];
+			double thisbias = biases[f];
+      //int y_start = -l->pad;
+      //int x_start = -l->pad;
+			//int y = y_start;
+			//#pragma omp parallel for collapse(2)
+			int y = negpad;
+      for (int out_y = 0; out_y < outheight; out_y++) {
+        int x = negpad;
+				for (int out_x = 0; out_x < outwidth; out_x++) {
+          //int x = negpad + out_x * stride;
+					//int y = negpad + out_y * stride;
+					double sum = thisbias;
           for (int fy = 0; fy < filter->height; fy++) {
             int in_y = y + fy;
             for (int fx = 0; fx < filter->width; fx++) {
@@ -120,7 +141,10 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 
           sum += l->biases->weights[f];
           out->weights[((out->width * out_y) + out_x) * out->depth + f] = sum;
+
+          x += stride;
         }
+        y += stride;
       }
     }
   }
