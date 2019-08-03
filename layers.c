@@ -131,9 +131,6 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
           //int x = negpad + out_x * stride;
 					//int y = negpad + out_y * stride;
 					double sum = thisbias;
-          double doublearray[2];
-          doublearray[0] = 0.0;
-          doublearray[1] = 0.0;
           __m128d total = _mm_setzero_pd();
           //_mm_store_pd((double*) doublearray, total);
           for (int fy = 0; fy < filh; fy++) {
@@ -144,10 +141,10 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
                 for (int fd = 0; fd < indepth/2*2; fd = fd + 2) {
                   //filter->weights[((filw * fy) + fx) * indepth + fd]
                   //* in->weights[((inwidth * in_y) + in_x) * indepth + fd];
-                  doublearray[0] += filtw[((filw * fy) + fx) * indepth + fd]
-                  * inw[((inwidth * in_y) + in_x) * indepth + fd];
-                  doublearray[1] += filtw[((filw * fy) + fx) * indepth + fd+1]
-                  * inw[((inwidth * in_y) + in_x) * indepth + fd+1];
+                  //doublearray[0] += filtw[((filw * fy) + fx) * indepth + fd]
+                  //* inw[((inwidth * in_y) + in_x) * indepth + fd];
+                  //doublearray[1] += filtw[((filw * fy) + fx) * indepth + fd+1]
+                  //* inw[((inwidth * in_y) + in_x) * indepth + fd+1];
                   __m128d filterm = _mm_load_pd((filtw+((filw * fy) + fx) * indepth + fd));
                   __m128d inm = _mm_load_pd((inw+((inwidth * in_y) + in_x) * indepth + fd));
                   __m128d mult = _mm_mul_pd(filterm, inm);
@@ -160,6 +157,10 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
               }
             }
           }
+
+          double doublearray[2];
+          doublearray[0] = 0.0;
+          doublearray[1] = 0.0;
 
           _mm_store_pd((double*) doublearray, total);
 
