@@ -90,7 +90,8 @@ conv_layer_t* make_conv_layer(int input_width, int input_height, int input_depth
 // 2. FInd out if any data can be restructured
 // 3. Cache blocking / Loop unrolling
 void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int start, int end) {
-  int stride = l->stride;
+
+	int stride = l->stride;
 	volume_t** filts = l->filters;
 	int negpad = -l->pad;
 	int indepth = l->input_depth;
@@ -110,7 +111,6 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
     volume_t* in  = inputs[i];
     volume_t* out = outputs[i];
 
-
 //		#pragma omp parallel for
     for (int f = 0; f < outdepth; f++) {
       volume_t* filter = filts[f];
@@ -126,24 +126,84 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
           //int x = negpad + out_x * stride;
 					//int y = negpad + out_y * stride;
 					double sum = thisbias;
-          for (int fy = 0; fy < filh; fy++) {
-            int in_y = y + fy;
-            for (int fx = 0; fx < filw; fx++) {
+
+					// Take sum of element-wise product
+				//	#pragma omp parallel for collapse(2) reduction(+:sum)
+          for (int fy = 0; fy < filh; fy = fy + 1) {
+						//tempfy = fy;
+            for (int fx = 0; fx < filw/4*4; fx = fx + 4) {
+							int in_y = y + fy;
               int in_x = x + fx;
               if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
-                for (int fd = 0; fd < indepth; fd++) {
-                  sum += filter->weights[((filw * fy) + fx) * indepth + fd]
-                  * in->weights[((inwidth * in_y) + in_x) * indepth + fd];
+                for (int fd = 0; fd < indepth/4 * 4; fd = fd + 4) {
+                  sum += filter->weights[((filter->width * fy) + fx) * filter->depth + fd] * in->weights[((inwidth * in_y) + in_x) * indepth + fd];
+                  sum += filter->weights[((filter->width * fy) + fx) * filter->depth + fd+1] * in->weights[((inwidth * in_y) + in_x) * indepth + fd+1];
+                  sum += filter->weights[((filter->width * fy) + fx) * filter->depth + fd+2] * in->weights[((inwidth * in_y) + in_x) * indepth + fd+2];
+                  sum += filter->weights[((filter->width * fy) + fx) * filter->depth + fd+3] * in->weights[((inwidth * in_y) + in_x) * indepth + fd+3];
                 }
+								for (int fd = indepth/4 * 4; fd < indepth; fd = fd + 1) {
+                  sum += filter->weights[((filter->width * fy) + fx) * filter->depth + fd] * in->weights[((inwidth * in_y) + in_x) * indepth + fd];
+								}
+              }
+              in_x = x + fx+1;
+              if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
+                for (int fd = 0; fd < indepth/4 * 4; fd = fd + 4) {
+                  sum += filter->weights[((filter->width * fy) + fx+1) * filter->depth + fd] * in->weights[((inwidth * in_y) + in_x) * indepth + fd];
+                  sum += filter->weights[((filter->width * fy) + fx+1) * filter->depth + fd+1] * in->weights[((inwidth * in_y) + in_x) * indepth + fd+1];
+                  sum += filter->weights[((filter->width * fy) + fx+1) * filter->depth + fd+2] * in->weights[((inwidth * in_y) + in_x) * indepth + fd+2];
+                  sum += filter->weights[((filter->width * fy) + fx+1) * filter->depth + fd+3] * in->weights[((inwidth * in_y) + in_x) * indepth + fd+3];
+                }
+								for (int fd = indepth/4 * 4; fd < indepth; fd = fd + 1) {
+                  sum += filter->weights[((filter->width * fy) + fx+1) * filter->depth + fd] * in->weights[((inwidth * in_y) + in_x) * indepth + fd];
+								}
+              }
+              in_x = x + fx+2;
+              if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
+                for (int fd = 0; fd < indepth/4 * 4; fd = fd + 4) {
+                  sum += filter->weights[((filter->width * fy) + fx+2) * filter->depth + fd] * in->weights[((inwidth * in_y) + in_x) * indepth + fd];
+                  sum += filter->weights[((filter->width * fy) + fx+2) * filter->depth + fd+1] * in->weights[((inwidth * in_y) + in_x) * indepth + fd+1];
+                  sum += filter->weights[((filter->width * fy) + fx+2) * filter->depth + fd+2] * in->weights[((inwidth * in_y) + in_x) * indepth + fd+2];
+                  sum += filter->weights[((filter->width * fy) + fx+2) * filter->depth + fd+3] * in->weights[((inwidth * in_y) + in_x) * indepth + fd+3];
+                }
+								for (int fd = indepth/4 * 4; fd < indepth; fd = fd + 1) {
+                  sum += filter->weights[((filter->width * fy) + fx+2) * filter->depth + fd] * in->weights[((inwidth * in_y) + in_x) * indepth + fd];
+								}
+              }
+              in_x = x + fx+3;
+              if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
+                for (int fd = 0; fd < indepth/4 * 4; fd = fd + 4) {
+                  sum += filter->weights[((filter->width * fy) + fx+3) * filter->depth + fd] * in->weights[((inwidth * in_y) + in_x) * indepth + fd];
+                  sum += filter->weights[((filter->width * fy) + fx+3) * filter->depth + fd+1] * in->weights[((inwidth * in_y) + in_x) * indepth + fd+1];
+                  sum += filter->weights[((filter->width * fy) + fx+3) * filter->depth + fd+2] * in->weights[((inwidth * in_y) + in_x) * indepth + fd+2];
+                  sum += filter->weights[((filter->width * fy) + fx+3) * filter->depth + fd+3] * in->weights[((inwidth * in_y) + in_x) * indepth + fd+3];
+                }
+								for (int fd = indepth/4 * 4; fd < indepth; fd = fd + 1) {
+                  sum += filter->weights[((filter->width * fy) + fx+3) * filter->depth + fd] * in->weights[((inwidth * in_y) + in_x) * indepth + fd];
+								}
               }
             }
-          }
-          
+            for (int fx = filw/4*4; fx < filw; fx = fx + 1) {
+							int in_y = y + fy;
+              int in_x = x + fx;
+              if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
+                for (int fd = 0; fd < indepth/4 * 4; fd = fd + 4) {
+                  sum += filter->weights[((filter->width * fy) + fx) * filter->depth + fd] * in->weights[((inwidth * in_y) + in_x) * indepth + fd];
+                  sum += filter->weights[((filter->width * fy) + fx) * filter->depth + fd+1] * in->weights[((inwidth * in_y) + in_x) * indepth + fd+1];
+                  sum += filter->weights[((filter->width * fy) + fx) * filter->depth + fd+2] * in->weights[((inwidth * in_y) + in_x) * indepth + fd+2];
+                  sum += filter->weights[((filter->width * fy) + fx) * filter->depth + fd+3] * in->weights[((inwidth * in_y) + in_x) * indepth + fd+3];
+                }
+								for (int fd = indepth/4 * 4; fd < indepth; fd = fd + 1) {
+                  sum += filter->weights[((filter->width * fy) + fx) * filter->depth + fd] * in->weights[((inwidth * in_y) + in_x) * indepth + fd];
+								}
+              }
+						}
+					}
+
           out->weights[((outwidth * out_y) + out_x) * outdepth + f] = sum;
 
-          x += stride;
+					x += stride;
         }
-        y += stride;
+				y += stride;
       }
     }
   }
