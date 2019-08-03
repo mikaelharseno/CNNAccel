@@ -140,7 +140,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
           //   addr += 16 - addr % 16;
           // }
           // double* doublearray = (double *)addr;
-          double doublearray[2] __attribute__((aligned(16)));
+          //double doublearray[2] __attribute__((aligned(16)));
           //doublearray = (doublearray + (16 - 1)) & -16;
           //double * doublearray = aligntonext(meme, 4);
           if (((size_t)(doublearray) & 0xF) != 0) {
@@ -161,24 +161,24 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
                   //* inw[((inwidth * in_y) + in_x) * indepth + fd];
                   //doublearray[1] += filtw[((filw * fy) + fx) * indepth + fd+1]
                   //* inw[((inwidth * in_y) + in_x) * indepth + fd+1];
+                  double doublearray[2] __attribute__((aligned(16)));
                   __m128d filterm = _mm_load_pd((filtw+((filw * fy) + fx) * indepth + fd));
                   __m128d inm = _mm_load_pd((inw+((inwidth * in_y) + in_x) * indepth + fd));
                   __m128d mult = _mm_mul_pd(filterm, inm);
                   //total = temp;
-                  sum = sum + doublearray[0];
+                  /*sum = sum + doublearray[0];
                   _mm_store_pd(doublearray, total);
                   sum = sum + doublearray[0];
-                  printf("%x\n", (unsigned int) doublearray);
+                  printf("%x\n", (unsigned int) doublearray);*/
                   total = _mm_add_pd(total, mult);
                   _mm_store_pd(doublearray, total);
                   sum = sum + doublearray[0];
                   printf("%x\n", (unsigned int) doublearray);
                   //_mm_storeu_pd(doubarray, total);
                   printf("%x\n", (unsigned int) doublearray);
-                  total = _mm_add_pd(total, mult);
-                  _mm_store_pd(doublearray, total);
-                  sum = sum + doublearray[0];
-                  ///printf("%x\n", (unsigned int) doublearray);
+                  //total = _mm_add_pd(total, mult);
+                  //_mm_store_pd(doublearray, total);
+                  //sum = sum + doublearray[0];
                   //sum = sum + doublearray[1];
 
                 }
@@ -188,7 +188,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
                   * inw[((inwidth * in_y) + in_x) * indepth + fd];
                 }
               }
-              //return;
+              return;
             }
             //return;
           }
