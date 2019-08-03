@@ -90,120 +90,37 @@ conv_layer_t* make_conv_layer(int input_width, int input_height, int input_depth
 // 2. FInd out if any data can be restructured
 // 3. Cache blocking / Loop unrolling
 void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int start, int end) {
-  
-	int stride = l->stride;
-	volume_t** filts = l->filters;
-	int negpad = -l->pad;
-	int indepth = l->input_depth;
-	int inheight = l->input_height;
-	int inwidth = l->input_width;
-	int outdepth = l->output_depth;
-	int outheight = l->output_height;
-	int outwidth = l->output_width;
-	int filh = l->filter_height;
-	int filw = l->filter_width;
-	double* biases = l->biases->weights;
-
-//	int tempfy;
-
-	#pragma omp parallel for
   for (int i = start; i <= end; i++) {
     volume_t* in  = inputs[i];
     volume_t* out = outputs[i];
 
-//		#pragma omp parallel for
-    for (int f = 0; f < outdepth; f++) {
-      volume_t* filter = filts[f];
-			double thisbias = biases[f];
-      //int y_start = -l->pad;
-      //int x_start = -l->pad;
-			//int y = y_start;
-			//#pragma omp parallel for collapse(2)
-			int y = negpad;
-      for (int out_y = 0; out_y < outheight; out_y++) {
-        int x = negpad;
-				for (int out_x = 0; out_x < outwidth; out_x++) {
-          //int x = negpad + out_x * stride;
-					//int y = negpad + out_y * stride;
-					double sum = thisbias;
-          
-					// Take sum of element-wise product
-				//	#pragma omp parallel for collapse(2) reduction(+:sum)
-          for (int fy = 0; fy < filh; fy = fy + 1) {
-						//tempfy = fy;
-            for (int fx = 0; fx < filw/4*4; fx = fx + 4) {
-							int in_y = y + fy;
+    int stride = l->stride;
+
+    for (int f = 0; f < l->output_depth; f++) {
+      volume_t* filter = l->filters[f];
+      int y = -l->pad;
+      for (int out_y = 0; out_y < l->output_height; y += stride, out_y++) {
+        int x = -l->pad;
+        for (int out_x = 0; out_x < l->output_width; x += stride, out_x++) {
+
+          // Take sum of element-wise product
+          double sum = 0.0;
+          for (int fy = 0; fy < filter->height; fy++) {
+            int in_y = y + fy;
+            for (int fx = 0; fx < filter->width; fx++) {
               int in_x = x + fx;
-              if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
-                for (int fd = 0; fd < indepth/4 * 4; fd = fd + 4) {
-                  sum += volume_get(filter, fx, fy, fd) * volume_get(in, in_x, in_y, fd);
-                  sum += volume_get(filter, fx, fy, fd+1) * volume_get(in, in_x, in_y, fd+1);
-                  sum += volume_get(filter, fx, fy, fd+2) * volume_get(in, in_x, in_y, fd+2);
-                  sum += volume_get(filter, fx, fy, fd+3) * volume_get(in, in_x, in_y, fd+3);
+              if (in_y >= 0 && in_y < in->height && in_x >= 0 && in_x < in->width) {
+                for (int fd = 0; fd < filter->depth; fd++) {
+                  sum += filter->weights[((filter->width * fy) + fx) * filter->depth + fd]
+                  * in->weights[((in->width * in_y) + in_x) * in->depth + fd];
                 }
-								for (int fd = indepth/4 * 4; fd < indepth; fd = fd + 1) {
-                  sum += volume_get(filter, fx, fy, fd) * volume_get(in, in_x, in_y, fd);
-								}
-              }
-              in_x = x + fx+1;
-              if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
-                for (int fd = 0; fd < indepth/4 * 4; fd = fd + 4) {
-                  sum += volume_get(filter, fx+1, fy, fd) * volume_get(in, in_x, in_y, fd);
-                  sum += volume_get(filter, fx+1, fy, fd+1) * volume_get(in, in_x, in_y, fd+1);
-                  sum += volume_get(filter, fx+1, fy, fd+2) * volume_get(in, in_x, in_y, fd+2);
-                  sum += volume_get(filter, fx+1, fy, fd+3) * volume_get(in, in_x, in_y, fd+3);
-                }
-								for (int fd = indepth/4 * 4; fd < indepth; fd = fd + 1) {
-                  sum += volume_get(filter, fx+1, fy, fd) * volume_get(in, in_x, in_y, fd);
-								}
-              }
-              in_x = x + fx+2;
-              if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
-                for (int fd = 0; fd < indepth/4 * 4; fd = fd + 4) {
-                  sum += volume_get(filter, fx+2, fy, fd) * volume_get(in, in_x, in_y, fd);
-                  sum += volume_get(filter, fx+2, fy, fd+1) * volume_get(in, in_x, in_y, fd+1);
-                  sum += volume_get(filter, fx+2, fy, fd+2) * volume_get(in, in_x, in_y, fd+2);
-                  sum += volume_get(filter, fx+2, fy, fd+3) * volume_get(in, in_x, in_y, fd+3);
-                }
-								for (int fd = indepth/4 * 4; fd < indepth; fd = fd + 1) {
-                  sum += volume_get(filter, fx+2, fy, fd) * volume_get(in, in_x, in_y, fd);
-								}
-              }
-              in_x = x + fx+3;
-              if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
-                for (int fd = 0; fd < indepth/4 * 4; fd = fd + 4) {
-                  sum += volume_get(filter, fx+3, fy, fd) * volume_get(in, in_x, in_y, fd);
-                  sum += volume_get(filter, fx+3, fy, fd+1) * volume_get(in, in_x, in_y, fd+1);
-                  sum += volume_get(filter, fx+3, fy, fd+2) * volume_get(in, in_x, in_y, fd+2);
-                  sum += volume_get(filter, fx+3, fy, fd+3) * volume_get(in, in_x, in_y, fd+3);
-                }
-								for (int fd = indepth/4 * 4; fd < indepth; fd = fd + 1) {
-                  sum += volume_get(filter, fx+3, fy, fd) * volume_get(in, in_x, in_y, fd);
-								}
               }
             }
-            for (int fx = filw/4*4; fx < filw; fx = fx + 1) {
-							int in_y = y + fy;
-              int in_x = x + fx;
-              if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
-                for (int fd = 0; fd < indepth/4 * 4; fd = fd + 4) {
-                  sum += volume_get(filter, fx, fy, fd) * volume_get(in, in_x, in_y, fd);
-                  sum += volume_get(filter, fx, fy, fd+1) * volume_get(in, in_x, in_y, fd+1);
-                  sum += volume_get(filter, fx, fy, fd+2) * volume_get(in, in_x, in_y, fd+2);
-                  sum += volume_get(filter, fx, fy, fd+3) * volume_get(in, in_x, in_y, fd+3);
-                }
-								for (int fd = indepth/4 * 4; fd < indepth; fd = fd + 1) {
-                  sum += volume_get(filter, fx, fy, fd) * volume_get(in, in_x, in_y, fd);
-								}
-              }
-						}
-					}
+          }
 
-          volume_set(out, out_x, out_y, f, sum);
-
-					x += stride;
+          sum += l->biases->weights[f];
+          out->weights[((out->width * out_y) + out_x) * out->depth + f] = sum;
         }
-				y += stride;
       }
     }
   }
@@ -443,7 +360,7 @@ softmax_layer_t* make_softmax_layer(int input_width, int input_height, int input
 void softmax_forward(softmax_layer_t* l, volume_t** inputs, volume_t** outputs, int start, int end) {
 	//int outdep = l->output_depth;
 
-  #pragma omp parallel for
+  //#pragma omp parallel for
 	for (int j = start; j <= end; j++) {
 		double likelihoods[l->output_depth];
     volume_t* in  = inputs[j];
