@@ -89,6 +89,89 @@ conv_layer_t* make_conv_layer(int input_width, int input_height, int input_depth
 // 1. Make pragma / parallel threads as much as possible
 // 2. FInd out if any data can be restructured
 // 3. Cache blocking / Loop unrolling
+// void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int start, int end) {
+//   int stride = l->stride;
+// 	volume_t** filts = l->filters;
+// 	int negpad = -l->pad;
+// 	int indepth = l->input_depth;
+// 	int inheight = l->input_height;
+// 	int inwidth = l->input_width;
+// 	int outdepth = l->output_depth;
+// 	int outheight = l->output_height;
+// 	int outwidth = l->output_width;
+// 	int filh = l->filter_height;
+// 	int filw = l->filter_width;
+// 	double* biases = l->biases->weights;
+//
+// //	int tempfy;
+//
+// 	//#pragma omp parallel for
+//   for (int i = start; i <= end; i++) {
+//     //double doublearray[2];
+//     volume_t* in  = inputs[i];
+//     volume_t* out = outputs[i];
+//     double* inw = in->weights;
+//     double* outw = out->weights;
+//
+//
+// //		#pragma omp parallel for
+//     for (int f = 0; f < outdepth; f++) {
+//       volume_t* filter = filts[f];
+// 			double thisbias = biases[f];
+//       double* filtw = filter->weights;
+//
+//       //int y_start = -l->pad;
+//       //int x_start = -l->pad;
+// 			//int y = y_start;
+// 			//#pragma omp parallel for collapse(2)
+// 			int y = negpad;
+//       for (int out_y = 0; out_y < l->output_height; out_y++) {
+//         int x = negpad;
+// 				for (int out_x = 0; out_x < l->output_width; out_x++) {
+//           //int x = negpad + out_x * stride;
+// 					//int y = negpad + out_y * stride;
+// 					double sum = thisbias;
+//           __m128d total = _mm_setzero_pd();
+//
+//           double doublearray[2] __attribute__((aligned(16)));
+//           for (int fy = 0; fy < filh; fy++) {
+//             int in_y = y + fy;
+//             for (int fx = 0; fx < filw; fx++) {
+//               int in_x = x + fx;
+//               //printf("Start new day \n");
+//               if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
+//                 //printf("If satisfied \n");
+//                 //printf("Filter depth:%d",indepth);
+//                 for (int fd = 0; fd < indepth/2*2; fd = fd + 2) {
+//                   //filter->weights[((filw * fy) + fx) * indepth + fd]
+//                   //* in->weights[((inwidth * in_y) + in_x) * indepth + fd];
+//                   __m128d filterm = _mm_loadu_pd(filtw + (int) (((filw * fy) + fx) * filh + fd));
+//                   __m128d inm = _mm_loadu_pd((inw+((inwidth * in_y) + in_x) * indepth + fd));
+//                   __m128d mult = _mm_mul_pd(filterm, inm);
+//                   total = _mm_add_pd(total, mult);
+//
+//                 }
+//                 for (int fd = indepth/2*2; fd < indepth; fd++) {
+//                   sum += filtw[((filw * fy) + fx) * indepth + fd] * inw[((inwidth * in_y) + in_x) * indepth + fd];
+//                 }
+//               }
+//             }
+//           }
+//
+//           _mm_store_pd(doublearray, total);
+//
+//           sum = sum + doublearray[0];
+//           sum = sum + doublearray[1];
+//
+//           outw[((outwidth * out_y) + out_x) * outdepth + f] = sum;
+//
+//           x += stride;
+//         }
+//         y += stride;
+//       }
+//     }
+//   }
+// }
 void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int start, int end) {
   int stride = l->stride;
 	volume_t** filts = l->filters;
@@ -107,63 +190,39 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 
 	//#pragma omp parallel for
   for (int i = start; i <= end; i++) {
-    //double doublearray[2];
     volume_t* in  = inputs[i];
     volume_t* out = outputs[i];
-    double* inw = in->weights;
-    double* outw = out->weights;
 
 
 //		#pragma omp parallel for
     for (int f = 0; f < outdepth; f++) {
       volume_t* filter = filts[f];
 			double thisbias = biases[f];
-      double* filtw = filter->weights;
-
       //int y_start = -l->pad;
       //int x_start = -l->pad;
 			//int y = y_start;
 			//#pragma omp parallel for collapse(2)
 			int y = negpad;
-      for (int out_y = 0; out_y < l->output_height; out_y++) {
+      for (int out_y = 0; out_y < outheight; out_y++) {
         int x = negpad;
-				for (int out_x = 0; out_x < l->output_width; out_x++) {
+				for (int out_x = 0; out_x < outwidth; out_x++) {
           //int x = negpad + out_x * stride;
 					//int y = negpad + out_y * stride;
 					double sum = thisbias;
-          __m128d total = _mm_setzero_pd();
-
-          double doublearray[2] __attribute__((aligned(16)));
           for (int fy = 0; fy < filh; fy++) {
             int in_y = y + fy;
             for (int fx = 0; fx < filw; fx++) {
               int in_x = x + fx;
-              //printf("Start new day \n");
               if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
-                //printf("If satisfied \n");
-                //printf("Filter depth:%d",indepth);
-                for (int fd = 0; fd < indepth/2*2; fd = fd + 2) {
-                  //filter->weights[((filw * fy) + fx) * indepth + fd]
-                  //* in->weights[((inwidth * in_y) + in_x) * indepth + fd];
-                  __m128d filterm = _mm_loadu_pd(filtw + (int) (((filw * fy) + fx) * filh + fd));
-                  __m128d inm = _mm_loadu_pd((inw+((inwidth * in_y) + in_x) * indepth + fd));
-                  __m128d mult = _mm_mul_pd(filterm, inm);
-                  total = _mm_add_pd(total, mult);
-
-                }
-                for (int fd = indepth/2*2; fd < indepth; fd++) {
-                  sum += filtw[((filw * fy) + fx) * indepth + fd] * inw[((inwidth * in_y) + in_x) * indepth + fd];
+                for (int fd = 0; fd < indepth; fd++) {
+                  sum += filter->weights[((filw * fy) + fx) * indepth + fd]
+                  * in->weights[((inwidth * in_y) + in_x) * indepth + fd];
                 }
               }
             }
           }
 
-          _mm_store_pd(doublearray, total);
-
-          sum = sum + doublearray[0];
-          sum = sum + doublearray[1];
-
-          outw[((outwidth * out_y) + out_x) * outdepth + f] = sum;
+          out->weights[((outwidth * out_y) + out_x) * outdepth + f] = sum;
 
           x += stride;
         }
