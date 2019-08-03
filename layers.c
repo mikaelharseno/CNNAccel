@@ -195,7 +195,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
             //return;
           }
 
-          printf("Sum:%lf\n",sum);
+          //printf("Sum:%lf\n",sum);
 
           //return;
 
