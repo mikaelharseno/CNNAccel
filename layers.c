@@ -135,7 +135,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
           doublearray[0] = 0.0;
           doublearray[1] = 0.0;
           __m128d total = _mm_setzero_pd();
-          _mm_store_pd((double*) doublearray, total);
+          //_mm_store_pd((double*) doublearray, total);
           for (int fy = 0; fy < filh; fy++) {
             int in_y = y + fy;
             for (int fx = 0; fx < filw; fx++) {
@@ -161,7 +161,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
             }
           }
 
-          //_mm_store_pd((__m128d*) doublearray, total);
+          _mm_store_pd((double*) doublearray, total);
 
           sum = sum + doublearray[0];
           sum = sum + doublearray[1];
