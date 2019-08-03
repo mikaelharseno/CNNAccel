@@ -27,7 +27,8 @@ inline void volume_set(volume_t* v, int x, int y, int d, double value) {
 
 volume_t* make_volume(int width, int height, int depth, double value) {
   volume_t* new_vol = malloc(sizeof(struct volume));
-  new_vol->weights = malloc(sizeof(double) * width * height * depth);
+  //new_vol->weights = malloc(sizeof(double) * width * height * depth);
+  posix_memalign((void **) &new_vol->weights, 16, (sizeof(double) * width * height * depth));
 
   new_vol->width  = width;
   new_vol->height = height;
