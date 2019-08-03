@@ -142,12 +142,12 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
                  for (int fd = 0; fd < indepth/2*2; fd = fd + 2) {
                    //filter->weights[((filw * fy) + fx) * indepth + fd]
                    //* in->weights[((inwidth * in_y) + in_x) * indepth + fd];
-                   //printf("fd: %d\n",fd);
+                   printf("fd: %d\n",fd);
                    //printf("doub: %x\n",sizeof(double));
-                   //printf("%x\n",&(filtw[(((filw * fy) + fx) * indepth + fd)]));
-                   //printf("%x\n",&(inw[(((inwidth * in_y) + in_x) * indepth + fd)]));
-                   __m128d filterm = _mm_load_pd(&(filtw[(((filw * fy) + fx) * indepth + fd)]));
-                   __m128d inm = _mm_load_pd(&(inw[(((inwidth * in_y) + in_x) * indepth + fd)]));
+                   printf("%x\n",&(filtw[(((filw * fy) + fx) * (indepth + indepth % 2) + fd)]));
+                   printf("%x\n",&(inw[(((inwidth * in_y) + in_x) * (indepth + indepth % 2) + fd)]));
+                   __m128d filterm = _mm_loadu_pd(&(filtw[(((filw * fy) + fx) * (indepth + indepth % 2) + fd)]));
+                   __m128d inm = _mm_loadu_pd(&(inw[(((inwidth * in_y) + in_x) * (indepth + indepth % 2) + fd)]));
                    __m128d mult = _mm_mul_pd(filterm, inm);
                    total = _mm_add_pd(total, mult);
 
@@ -158,8 +158,8 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
                  }
                  for (int fd = indepth/2*2; fd < indepth; fd++) {
                    //sum += filtw[((filw * fy) + fx) * indepth + fd] * inw[((inwidth * in_y) + in_x) * indepth + fd];
-										sum += filtw[(((filw * fy) + fx) * indepth + fd)]
-										* inw[(((inwidth * in_y) + in_x) * indepth + fd)];
+										sum += filtw[(((filw * fy) + fx) * (indepth + indepth % 2) + fd)]
+										* inw[(((inwidth * in_y) + in_x) * (indepth + indepth % 2) + fd)];
                  }
 
               }
