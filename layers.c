@@ -165,7 +165,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
             }
           }
 
-          _mm_store_pd((double*) doublearray, (__m128d) total);
+          //_mm_store_pd((double*) doublearray, (__m128d) total);
 
           sum = sum + doublearray[0];
           sum = sum + doublearray[1];
