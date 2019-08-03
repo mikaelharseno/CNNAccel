@@ -208,11 +208,13 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
           //sum = sum + doublearray[0];
           //sum = sum + doublearray[1];
 
+          return;
+
           outw[((outwidth * out_y) + out_x) * outdepth + f] = sum;
 
           x += stride;
         }
-        return;
+        //return;
         y += stride;
       }
       //return;
