@@ -200,6 +200,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
     for (int f = 0; f < outdepth; f++) {
       volume_t* filter = filts[f];
 			double thisbias = biases[f];
+      double* filtw = filter->weights;
       //int y_start = -l->pad;
       //int x_start = -l->pad;
 			//int y = y_start;
