@@ -153,7 +153,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
                   __m128d mult = _mm_mul_pd(filterm, inm);
                   //total = temp;
                   //temp = _mm_add_pd(total, mult);
-                  _mm_storeu_pd((double*) doublearray, (__m128d) mult);
+                  _mm_storeu_pd((double*) doublearray, (__m128d) total);
                   sum = sum + doublearray[0];
                   sum = sum + doublearray[1];
                 }
