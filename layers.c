@@ -133,7 +133,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 					double sum = thisbias;
           __m128d total = _mm_setzero_pd();
           //__m128d temp = _mm_setzero_pd();
-          __m128i zero = _mm_setzero_si128();
+          //__m128i zero = _mm_setzero_si128();
           double darray[10];
           uintptr_t addr = (uintptr_t) darray;
           if (addr % 16 != 0) {
@@ -164,8 +164,8 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
                   __m128d inm = _mm_load_pd((inw+((inwidth * in_y) + in_x) * indepth + fd));
                   __m128d mult = _mm_mul_pd(filterm, inm);
                   //total = temp;
-                  total = _mm_add_pd(total, mult);
-                  _mm_store_pd(doublearray, total);
+                  __m128d total = _mm_add_pd(total, mult);
+                  //_mm_store_pd(doublearray, total);
                   sum = sum + doublearray[0];
                   sum = sum + doublearray[1];
                 }
