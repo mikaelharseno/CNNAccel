@@ -107,10 +107,11 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 
 	//#pragma omp parallel for
   for (int i = start; i <= end; i++) {
-    double doublearray[2];
+    double doublearray[3];
     volume_t* in  = inputs[i];
     volume_t* out = outputs[i];
     double* inw = in->weights;
+    double* outw = out->weights;
 
 
 //		#pragma omp parallel for
@@ -164,7 +165,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
           sum = sum + doublearray[0];
           sum = sum + doublearray[1];
 
-          out->weights[((outwidth * out_y) + out_x) * outdepth + f] = sum;
+          outw[((outwidth * out_y) + out_x) * outdepth + f] = sum;
 
           x += stride;
         }
