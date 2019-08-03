@@ -209,7 +209,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 
           //return;
           //double bang = sum;
-          out->weights[((out->width * 0) + 0) * out->depth + 0] = 1.0;
+          out->weights[((out->width * 0) + 0) * out->depth + 0] = sum;
           //volume_set(out, 0, 0, 0, sum);
 
           //return;
