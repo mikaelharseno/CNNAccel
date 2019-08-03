@@ -33,7 +33,7 @@ volume_t* make_volume(int width, int height, int depth, double value) {
   new_vol->height = height;
   new_vol->depth  = depth;
 
-  #pragma omp parallel for collapse(2)
+  #pragma omp parallel for
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
       for (int d = 0; d < depth; d++) {
@@ -50,7 +50,7 @@ void copy_volume(volume_t* dest, volume_t* src) {
   assert(dest->height == src->height);
   assert(dest->depth == src->depth);
 
- #pragma omp parallel for collapse(2)
+ #pragma omp parallel for
   for (int y = 0; y < dest->height; y++) {
     for (int x = 0; x < dest->width; x++) {
       for (int d = 0; d < dest->depth; d++) {

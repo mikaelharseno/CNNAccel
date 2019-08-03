@@ -85,44 +85,58 @@ conv_layer_t* make_conv_layer(int input_width, int input_height, int input_depth
 // arrays, we must use the volume_get and volume_set commands to access elements
 // at a coordinate (x, y, d). Finally, we add the corresponding bias for the
 // filter to the sum before putting it into the output volume.
+// General strategy:
+// 1. Make pragma / parallel threads as much as possible
+// 2. FInd out if any data can be restructured
+// 3. Cache blocking / Loop unrolling
 void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int start, int end) {
-	//#pragma omp parallel for 
+  
+	int stride = l->stride;
+	volume_t** filts = l->filters;
+	int negpad = -l->pad;
+	int indepth = l->input_depth;
+	int inheight = l->input_height;
+	int inwidth = l->input_width;
+	int outdepth = l->output_depth;
+	int outheight = l->output_height;
+	int outwidth = l->output_width;
+	int filh = l->filter_height;
+	int filw = l->filter_width;
+	double* biases = l->biases->weights;
+
+	#pragma omp parallel for
   for (int i = start; i <= end; i++) {
     volume_t* in  = inputs[i];
     volume_t* out = outputs[i];
 
-    int stride = l->stride;
-
-		#pragma omp parallel for
-    for (int f = 0; f < l->output_depth; f++) {
-      volume_t* filter = l->filters[f];
-
-      int y_start = -l->pad;
-      int x_start = -l->pad;
-
+	//	#pragma omp parallel for
+    for (int f = 0; f < outdepth; f++) {
+      volume_t* filter = filts[f];
+			double thisbias = biases[f];
+      //int y_start = -l->pad;
+      //int x_start = -l->pad;
 			//int y = y_start;
 			#pragma omp parallel for collapse(2)
-      for (int out_y = 0; out_y < l->output_height; out_y++) {
-        for (int out_x = 0; out_x < l->output_width; out_x++) {
-          int x = x_start + out_x * stride;
-					int y = y_start + out_y * stride;
-					double sum = 0.0;
+      for (int out_y = 0; out_y < outheight; out_y++) {
+        for (int out_x = 0; out_x < outwidth; out_x++) {
+          int x = negpad + out_x * stride;
+					int y = negpad + out_y * stride;
+					double sum = thisbias;
           
 					// Take sum of element-wise product
-
-          for (int fy = 0; fy < filter->height; fy++) {
-            int in_y = y + fy;
-            for (int fx = 0; fx < filter->width; fx++) {
+				//	#pragma omp parallel for collapse(2) reduction(+:sum)
+          for (int fy = 0; fy < filh; fy++) {
+            for (int fx = 0; fx < filw; fx++) {
+							int in_y = y + fy;
               int in_x = x + fx;
-              if (in_y >= 0 && in_y < in->height && in_x >= 0 && in_x < in->width) {
-                for (int fd = 0; fd < filter->depth; fd++) {
+              if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
+                for (int fd = 0; fd < indepth; fd++) {
                   sum += volume_get(filter, fx, fy, fd) * volume_get(in, in_x, in_y, fd);
                 }
               }
             }
           }
 
-          sum += l->biases->weights[f];
           volume_set(out, out_x, out_y, f, sum);
         }
       }
@@ -185,13 +199,19 @@ void relu_forward(relu_layer_t* l, volume_t** inputs, volume_t** outputs, int st
   //#pragma omp parallel
   //{
     //#pragma omp for collapse(4)
+	int indepth = l->input_depth;
+	int inheight = l->input_height;
+	int inwidth = l->input_width;
+		#pragma omp parallel for
     for (int i = start; i <= end; i++) {
-      for (int x = 0; x < l->input_width; x++) {
-        for (int y = 0; y < l->input_height; y++) {
-          for (int d = 0; d < l->input_depth; d++) {
-            double temp = volume_get(inputs[i], x, y, d);
+			volume_t* in = inputs[i];
+			volume_t* out = outputs[i];
+      for (int y = 0; y < inheight; y++) {
+				for (int x = 0; x < inwidth; x++) {
+          for (int d = 0; d < indepth; d++) {
+            double temp = volume_get(in, x, y, d);
             double value = (temp < 0.0) ? 0.0 : temp;
-            volume_set(outputs[i], x, y, d, value);
+            volume_set(out, x, y, d, value);
           }
         }
       }
@@ -231,7 +251,8 @@ pool_layer_t* make_pool_layer(int input_width, int input_height, int input_depth
 // then the value of the corresponding element in the output is 5 (since that
 // is the maximum element). This effectively compresses the input.
 void pool_forward(pool_layer_t* l, volume_t** inputs, volume_t** outputs, int start, int end) {
-  for (int i = start; i <= end; i++) {
+  #pragma omp parallel for
+	for (int i = start; i <= end; i++) {
     volume_t* in  = inputs[i];
     volume_t* out = outputs[i];
 
@@ -291,7 +312,8 @@ fc_layer_t* make_fc_layer(int input_width, int input_height, int input_depth, in
 // input's weights with each of the filters. Note that these filters are not
 // the same as the filters for the convolutional layer.
 void fc_forward(fc_layer_t* l, volume_t** inputs, volume_t** outputs, int start, int end) {
-  for (int j = start; j <= end; j++) {
+  #pragma omp parallel for
+	for (int j = start; j <= end; j++) {
     volume_t* in  = inputs[j];
     volume_t* out = outputs[j];
 
@@ -354,12 +376,14 @@ softmax_layer_t* make_softmax_layer(int input_width, int input_height, int input
 // exponential. This yields exactly the same results as the expression above,
 // but is more resilient to floating point errors.
 void softmax_forward(softmax_layer_t* l, volume_t** inputs, volume_t** outputs, int start, int end) {
-  double likelihoods[l->output_depth];
 	clock_t s1, s2;
 	double cpu_time_used;
+	int outdep = l->output_depth;
 
 //	printf("Number of iterations: %d",end-start+1);
-  for (int j = start; j <= end; j++) {
+  #pragma omp parallel for
+	for (int j = start; j <= end; j++) {
+		double likelihoods[outdep];
 		//s1 = clock();
     volume_t* in  = inputs[j];
     volume_t* out = outputs[j];
@@ -380,14 +404,14 @@ void softmax_forward(softmax_layer_t* l, volume_t** inputs, volume_t** outputs, 
 		// Compute exponentials in a numerically stable way
     double total = 0.0;
 //		#pragma omp parallel for reduction(+:total)
-    for (int i = 0; i < l->output_depth; i++) {
+    for (int i = 0; i < outdep; i++) {
       double e = exp(in->weights[i] - amax);
       total += e;
       likelihoods[i] = e;
     }
 
 		// Normalize and output to sum to one
-    for (int i = 0; i < l->output_depth; i++) {
+    for (int i = 0; i < outdep; i++) {
       out->weights[i] = likelihoods[i] / total;
     }
 	  
