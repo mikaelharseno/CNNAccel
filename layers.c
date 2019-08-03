@@ -126,21 +126,20 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
           //int x = negpad + out_x * stride;
 					//int y = negpad + out_y * stride;
 					double sum = thisbias;
-          for (int fy = 0; fy < filter->height; fy++) {
+          for (int fy = 0; fy < filh; fy++) {
             int in_y = y + fy;
-            for (int fx = 0; fx < filter->width; fx++) {
+            for (int fx = 0; fx < filw; fx++) {
               int in_x = x + fx;
-              if (in_y >= 0 && in_y < in->height && in_x >= 0 && in_x < in->width) {
-                for (int fd = 0; fd < filter->depth; fd++) {
-                  sum += filter->weights[((filter->width * fy) + fx) * filter->depth + fd]
-                  * in->weights[((in->width * in_y) + in_x) * in->depth + fd];
+              if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
+                for (int fd = 0; fd < indepth; fd++) {
+                  sum += filter->weights[((filw * fy) + fx) * indepth + fd]
+                  * in->weights[((inwidth * in_y) + in_x) * indepth + fd];
                 }
               }
             }
           }
-
-          sum += l->biases->weights[f];
-          out->weights[((out->width * out_y) + out_x) * out->depth + f] = sum;
+          
+          out->weights[((outwidth * out_y) + out_x) * outdepth + f] = sum;
 
           x += stride;
         }
