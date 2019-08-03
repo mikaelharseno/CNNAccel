@@ -222,21 +222,21 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
             for (int fx = 0; fx < filw; fx++) {
               int in_x = x + fx;
               if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
-                // for (int fd = 0; fd < indepth; fd++) {
-                //   sum += filter->weights[((filw * fy) + fx) * indepth + fd]
-                //   * in->weights[((inwidth * in_y) + in_x) * indepth + fd];
+                for (int fd = 0; fd < indepth; fd++) {
+                  sum += filter->weights[((filw * fy) + fx) * indepth + fd]
+                  * in->weights[((inwidth * in_y) + in_x) * indepth + fd];
+                }
+                // for (int fd = 0; fd < indepth/2*2; fd = fd + 2) {
+                //   //filter->weights[((filw * fy) + fx) * indepth + fd]
+                //   //* in->weights[((inwidth * in_y) + in_x) * indepth + fd];
+                //   __m128d filterm = _mm_loadu_pd(filtw + (((filw * fy) + fx) * filh + fd));
+                //   __m128d inm = _mm_loadu_pd((inw+((inwidth * in_y) + in_x) * indepth + fd));
+                //   __m128d mult = _mm_mul_pd(filterm, inm);
+                //   total = _mm_add_pd(total, mult);
                 // }
-                for (int fd = 0; fd < indepth/2*2; fd = fd + 2) {
-                  //filter->weights[((filw * fy) + fx) * indepth + fd]
-                  //* in->weights[((inwidth * in_y) + in_x) * indepth + fd];
-                  __m128d filterm = _mm_loadu_pd(filtw + (((filw * fy) + fx) * filh + fd));
-                  __m128d inm = _mm_loadu_pd((inw+((inwidth * in_y) + in_x) * indepth + fd));
-                  __m128d mult = _mm_mul_pd(filterm, inm);
-                  total = _mm_add_pd(total, mult);
-                }
-                for (int fd = indepth/2*2; fd < indepth; fd++) {
-                  sum += filtw[((filw * fy) + fx) * indepth + fd] * inw[((inwidth * in_y) + in_x) * indepth + fd];
-                }
+                // for (int fd = indepth/2*2; fd < indepth; fd++) {
+                //   sum += filtw[((filw * fy) + fx) * indepth + fd] * inw[((inwidth * in_y) + in_x) * indepth + fd];
+                // }
 
               }
             }
