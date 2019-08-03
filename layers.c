@@ -2,6 +2,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 // Include SSE intrinsics
 #if defined(_MSC_VER)
@@ -85,20 +86,29 @@ conv_layer_t* make_conv_layer(int input_width, int input_height, int input_depth
 // at a coordinate (x, y, d). Finally, we add the corresponding bias for the
 // filter to the sum before putting it into the output volume.
 void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int start, int end) {
+	//#pragma omp parallel for 
   for (int i = start; i <= end; i++) {
     volume_t* in  = inputs[i];
     volume_t* out = outputs[i];
 
     int stride = l->stride;
 
+		#pragma omp parallel for
     for (int f = 0; f < l->output_depth; f++) {
       volume_t* filter = l->filters[f];
-      int y = -l->pad;
-      for (int out_y = 0; out_y < l->output_height; y += stride, out_y++) {
-        int x = -l->pad;
-        for (int out_x = 0; out_x < l->output_width; x += stride, out_x++) {
-          double sum = 0.0;
-          // Take sum of element-wise product
+
+      int y_start = -l->pad;
+      int x_start = -l->pad;
+
+			//int y = y_start;
+			#pragma omp parallel for collapse(2)
+      for (int out_y = 0; out_y < l->output_height; out_y++) {
+        for (int out_x = 0; out_x < l->output_width; out_x++) {
+          int x = x_start + out_x * stride;
+					int y = y_start + out_y * stride;
+					double sum = 0.0;
+          
+					// Take sum of element-wise product
 
           for (int fy = 0; fy < filter->height; fy++) {
             int in_y = y + fy;
@@ -345,8 +355,12 @@ softmax_layer_t* make_softmax_layer(int input_width, int input_height, int input
 // but is more resilient to floating point errors.
 void softmax_forward(softmax_layer_t* l, volume_t** inputs, volume_t** outputs, int start, int end) {
   double likelihoods[l->output_depth];
+	clock_t s1, s2;
+	double cpu_time_used;
 
+//	printf("Number of iterations: %d",end-start+1);
   for (int j = start; j <= end; j++) {
+		//s1 = clock();
     volume_t* in  = inputs[j];
     volume_t* out = outputs[j];
 
@@ -357,18 +371,29 @@ void softmax_forward(softmax_layer_t* l, volume_t** inputs, volume_t** outputs, 
         amax = in->weights[i];
       }
     }
+		
+		//s2 = clock();
+	  //cpu_time_used = ((double) (s2 - s1)) / CLOCKS_PER_SEC;
+    //printf("sec 1: %lf\n",cpu_time_used);
+	//	s1 = s2;
 
-    // Compute exponentials in a numerically stable way
+		// Compute exponentials in a numerically stable way
     double total = 0.0;
+//		#pragma omp parallel for reduction(+:total)
     for (int i = 0; i < l->output_depth; i++) {
       double e = exp(in->weights[i] - amax);
       total += e;
       likelihoods[i] = e;
     }
 
-    // Normalize and output to sum to one
+		// Normalize and output to sum to one
     for (int i = 0; i < l->output_depth; i++) {
       out->weights[i] = likelihoods[i] / total;
     }
+	  
+		//s2 = clock();
+	  //cpu_time_used = ((double) (s2 - s1)) / CLOCKS_PER_SEC;
+    //printf("sec 4: %lf\n",cpu_time_used);
+		//s1 = s2;
   }
 }
