@@ -152,6 +152,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
             int in_y = y + fy;
             for (int fx = 0; fx < filw; fx++) {
               int in_x = x + fx;
+              printf("Start new day \n");
               if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
                 for (int fd = 0; fd < indepth/2*2; fd = fd + 2) {
                   //filter->weights[((filw * fy) + fx) * indepth + fd]
