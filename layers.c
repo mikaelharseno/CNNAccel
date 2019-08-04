@@ -101,6 +101,8 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 	double* biases = l->biases->weights;
   int c1 = outdepth * outwidth;
 
+  int newc = indepth/4*4;
+
 	#pragma omp parallel for
   for (int i = start; i <= end; i++) {
     volume_t* in  = inputs[i];
@@ -127,7 +129,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 				for (int out_x = 0; out_x < outwidth; out_x++) {
 					double sum = thisbias;
 
-          //total = _mm256_setzero_pd();
+          total = _mm256_setzero_pd();
 
           for (int fy = 0; fy < filh; fy++) {
             int in_y = y + fy;
@@ -138,13 +140,13 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
               if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
                 int indfil = (ind1 + fx) * (indepth);
                 int indin = (ind2 + in_x) * (indepth);
-                 /*for (int fd = 0; fd < indepth/4*4; fd = fd + 4) {
+                 for (int fd = 0; fd < newc; fd = fd + 4) {
                    __m256d filterm = _mm256_loadu_pd(&(filtw[indfil + fd]));
                    __m256d inm = _mm256_loadu_pd(&(inw[indin + fd]));
                    __m256d mult = _mm256_mul_pd(filterm, inm);
                    total = _mm256_add_pd(total, mult);
-                 } */
-                 for (int fd = 0; fd < indepth; fd++) {
+                 }
+                 for (int fd = newc; fd < indepth; fd++) {
 										sum += filtw[indfil + fd] * inw[indin + fd];
                  }
               }
