@@ -18,11 +18,11 @@
 //x corr width. d corr depth
 //Probably some cache issues. Sorted by priority, high to low: d, x, y. Loop should be y,x,d
 inline double volume_get(volume_t* v, int x, int y, int d) {
-  return v->weights[(((v->width * y) + x) * (v->depth + (0 + (v->depth % 2))) + d)];
+  return v->weights[(((v->width * y) + x) * (v->depth + (4 - (v->depth % 4))) + d)];
 }
 
 inline void volume_set(volume_t* v, int x, int y, int d, double value) {
-  v->weights[(((v->width * y) + x) * (v->depth + (0 + (v->depth % 2))) + d)] = value;
+  v->weights[(((v->width * y) + x) * (v->depth + (4 - (v->depth % 4))) + d)] = value;
 }
 
 volume_t* make_volume(int width, int height, int depth, double value) {
