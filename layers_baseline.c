@@ -73,6 +73,10 @@ conv_layer_t* make_conv_layer(int input_width, int input_height, int input_depth
 // arrays, we must use the volume_get and volume_set commands to access elements
 // at a coordinate (x, y, d). Finally, we add the corresponding bias for the
 // filter to the sum before putting it into the output volume.
+
+// Filter values can be cached //???????? >> they repeat over and over. Reduce
+// volume_get calls.
+// Can we put the filter value outside and iterate through out_x and out_y ?
 void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int start, int end) {
   for (int i = start; i <= end; i++) {
     volume_t* in  = inputs[i];
@@ -121,8 +125,8 @@ void conv_load(conv_layer_t* l, const char* file_name) {
   assert(filters == l->output_depth);
 
   for (int f = 0; f < filters; f++) {
-    for (int y = 0; y < filter_height; y++) {
-      for (int x = 0; x < filter_width; x++) {
+    for (int x = 0; x < filter_width; x++) {
+      for (int y = 0; y < filter_height; y++) {
         for (int d = 0; d < depth; d++) {
           double val;
           fscanf(fin, "%lf", &val);
@@ -159,8 +163,8 @@ relu_layer_t* make_relu_layer(int input_width, int input_height, int input_depth
 // output(x, y, d) to max(0.0, input(x, y, d)).
 void relu_forward(relu_layer_t* l, volume_t** inputs, volume_t** outputs, int start, int end) {
   for (int i = start; i <= end; i++) {
-    for (int y = 0; y < l->input_height; y++) {
-      for (int x = 0; x < l->input_width; x++) {
+    for (int x = 0; x < l->input_width; x++) {
+      for (int y = 0; y < l->input_height; y++) {
         for (int d = 0; d < l->input_depth; d++) {
           double value = (volume_get(inputs[i], x, y, d) < 0.0) ? 0.0 : volume_get(inputs[i], x, y, d);
           volume_set(outputs[i], x, y, d, value);
