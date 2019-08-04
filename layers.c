@@ -109,7 +109,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
     double* outw = out->weights;
 
 
-		//#pragma omp parallel for
+		#pragma omp parallel for
     for (int f = 0; f < outdepth; f++) {
       volume_t* filter = filts[f];
 			double thisbias = biases[f];
@@ -416,7 +416,7 @@ softmax_layer_t* make_softmax_layer(int input_width, int input_height, int input
 void softmax_forward(softmax_layer_t* l, volume_t** inputs, volume_t** outputs, int start, int end) {
 	//int outdep = l->output_depth;
 
-  //#pragma omp parallel for
+  #pragma omp parallel for
 	for (int j = start; j <= end; j++) {
 		double likelihoods[l->output_depth];
     volume_t* in  = inputs[j];
