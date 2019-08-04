@@ -250,8 +250,8 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
     }
   }
   clock_t t3 = clock();
-  printf("Total : %lf\n")((double) (t3 - t1)) / CLOCKS_PER_SEC;
-  printf("Vars : %lf\n")((double) (t2 - t1)) / CLOCKS_PER_SEC;
+  printf("Total : %lf\n",((double) (t3 - t1)) / CLOCKS_PER_SEC);
+  printf("Vars : %lf\n",((double) (t2 - t1)) / CLOCKS_PER_SEC);
 }
 
 void conv_load(conv_layer_t* l, const char* file_name) {
