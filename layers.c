@@ -201,21 +201,21 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
                    total = _mm256_add_pd(total, mult);
 
                    fd++;
-                   __m256d filterm = _mm256_loadu_pd(&(filtw[(((filw * fy) + fx) * (indepth) + 4*fd)]));
-                   __m256d inm = _mm256_loadu_pd(&(inw[(((inwidth * in_y) + in_x) * (indepth) + 4*fd)]));
-                   __m256d mult = _mm256_mul_pd(filterm, inm);
+                   filterm = _mm256_loadu_pd(&(filtw[(((filw * fy) + fx) * (indepth) + 4*fd)]));
+                   inm = _mm256_loadu_pd(&(inw[(((inwidth * in_y) + in_x) * (indepth) + 4*fd)]));
+                   mult = _mm256_mul_pd(filterm, inm);
                    total = _mm256_add_pd(total, mult);
 
                    fd++;
-                   __m256d filterm = _mm256_loadu_pd(&(filtw[(((filw * fy) + fx) * (indepth) + 4*fd)]));
-                   __m256d inm = _mm256_loadu_pd(&(inw[(((inwidth * in_y) + in_x) * (indepth) + 4*fd)]));
-                   __m256d mult = _mm256_mul_pd(filterm, inm);
+                   filterm = _mm256_loadu_pd(&(filtw[(((filw * fy) + fx) * (indepth) + 4*fd)]));
+                   inm = _mm256_loadu_pd(&(inw[(((inwidth * in_y) + in_x) * (indepth) + 4*fd)]));
+                   mult = _mm256_mul_pd(filterm, inm);
                    total = _mm256_add_pd(total, mult);
 
                    fd++;
-                   __m256d filterm = _mm256_loadu_pd(&(filtw[(((filw * fy) + fx) * (indepth) + 4*fd)]));
-                   __m256d inm = _mm256_loadu_pd(&(inw[(((inwidth * in_y) + in_x) * (indepth) + 4*fd)]));
-                   __m256d mult = _mm256_mul_pd(filterm, inm);
+                   filterm = _mm256_loadu_pd(&(filtw[(((filw * fy) + fx) * (indepth) + 4*fd)]));
+                   inm = _mm256_loadu_pd(&(inw[(((inwidth * in_y) + in_x) * (indepth) + 4*fd)]));
+                   mult = _mm256_mul_pd(filterm, inm);
                    total = _mm256_add_pd(total, mult);
 
                    fd = tempfx;
