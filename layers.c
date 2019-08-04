@@ -126,7 +126,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 					//int y = negpad + out_y * stride;
 					double sum = thisbias;
 
-          __m128d total = _mm_setzero_pd();
+          __m256d total = _mm256_setzero_pd();
 
           double doublearray[4] __attribute__((aligned(32)));
 
@@ -139,19 +139,19 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
                   sum += filter->weights[((filw * fy) + fx) * indepth + fd]
                   * in->weights[((inwidth * in_y) + in_x) * indepth + fd];
                 }*/
-                 for (int fd = 0; fd < indepth/2*2; fd = fd + 2) {
+                 for (int fd = 0; fd < indepth/4*4; fd = fd + 4) {
                    //filter->weights[((filw * fy) + fx) * indepth + fd]
                    // in->weights[((inwidth * in_y) + in_x) * indepth + fd];
                    //printf("fd: %d\n",fd);
                    //printf("doub: %x\n",sizeof(double));
                    //printf("%x\n",&(filtw[(((filw * fy) + fx) * (indepth + (4 - (indepth % 4))) + fd)]));
                    //printf("%x\n",&(inw[(((inwidth * in_y) + in_x) * (indepth + (4 - (indepth % 4))) + fd)]));
-                   __m128d filterm = _mm_loadu_pd(&(filtw[(((filw * fy) + fx) * (indepth) + fd)]));
-                   __m128d inm = _mm_loadu_pd(&(inw[(((inwidth * in_y) + in_x) * (indepth) + fd)]));
-                   __m128d mult = _mm_mul_pd(filterm, inm);
-                   total = _mm_add_pd(total, mult);
+                   __m256d filterm = _mm256_loadu_pd(&(filtw[(((filw * fy) + fx) * (indepth) + fd)]));
+                   __m256d inm = _mm256_loadu_pd(&(inw[(((inwidth * in_y) + in_x) * (indepth) + fd)]));
+                   __m256d mult = _mm256_mul_pd(filterm, inm);
+                   total = _mm256_add_pd(total, mult);
                  }
-                 for (int fd = indepth/2*2; fd < indepth; fd++) {
+                 for (int fd = indepth/4*4; fd < indepth; fd++) {
                    //sum += filtw[((filw * fy) + fx) * indepth + fd] * inw[((inwidth * in_y) + in_x) * indepth + fd];
 										sum += filtw[(((filw * fy) + fx) * indepth + fd)]
 										* inw[(((inwidth * in_y) + in_x) * indepth + fd)];
@@ -161,7 +161,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
             }
           }
 
-          _mm_store_pd(doublearray, total);
+          _mm256_store_pd(doublearray, total);
 
           //printf("%lf\n", doublearray[1]);
 
@@ -169,6 +169,8 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
           //sum += doublearray[1];
 					sum = sum + doublearray[0];
 					sum = sum + doublearray[1];
+          sum = sum + doublearray[2];
+          sum = sum + doublearray[3];
           outw[((outwidth * out_y) + out_x) * outdepth + f] = sum;
 
           x += stride;
