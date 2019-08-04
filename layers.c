@@ -87,22 +87,38 @@ conv_layer_t* make_conv_layer(int input_width, int input_height, int input_depth
 // filter to the sum before putting it into the output volume.
 
 void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int start, int end) {
-  int stride = l->stride;
-  volume_t** filts = l->filters;
-  int negpad = -l->pad;
-  int indepth = l->input_depth;
-  int inheight = l->input_height;
-  int inwidth = l->input_width;
-  int outdepth = l->output_depth;
-  int outheight = l->output_height;
-  int outwidth = l->output_width;
-  int filh = l->filter_height;
-  int filw = l->filter_width;
-  double* biases = l->biases->weights;
-  int c1 = outdepth * outwidth;
-  int newc = indepth/4*4;
-	#pragma omp parallel for private(stride, filts, negpad, indepth, inheight, inwidth, outdepth, outheight, outwidth, filh, filw, biases, c1, newc)
+  int astride = l->stride;
+  volume_t** afilts = l->filters;
+  int anegpad = -l->pad;
+  int aindepth = l->input_depth;
+  int ainheight = l->input_height;
+  int ainwidth = l->input_width;
+  int aoutdepth = l->output_depth;
+  int aoutheight = l->output_height;
+  int aoutwidth = l->output_width;
+  int afilh = l->filter_height;
+  int afilw = l->filter_width;
+  double* abiases = l->biases->weights;
+  int ac1 = outdepth * outwidth;
+  int anewc = indepth/4*4;
+  //private(stride, filts, negpad, indepth, inheight, inwidth, outdepth, outheight, outwidth, filh, filw, biases, c1, newc)
+	#pragma omp parallel for
   for (int i = start; i <= end; i++) {
+    int stride = astride;
+  	volume_t** filts = afilts;
+  	int negpad = anegpad;
+  	int indepth = aindepth;
+  	int inheight = ainheight;
+  	int inwidth = ainwidth;
+  	int outdepth = aoutdepth;
+  	int outheight = aoutheight;
+  	int outwidth = aoutwidth;
+  	int filh = afilh;
+  	int filw = afilw;
+  	double* biases = abiases;
+    int c1 = ac1;
+    int newc = anewc;
+
     /*int stride = l->stride;
   	volume_t** filts = l->filters;
   	int negpad = -l->pad;
