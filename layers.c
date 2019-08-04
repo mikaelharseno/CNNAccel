@@ -158,8 +158,8 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
                  }*/
                  for (int fd = 0; fd < indepth; fd++) {
                    //sum += filtw[((filw * fy) + fx) * indepth + fd] * inw[((inwidth * in_y) + in_x) * indepth + fd];
-										sum += filtw[(((filw * fy) + fx) * (indepth + (4 - (indepth % 4))) + fd)]
-										* inw[(((inwidth * in_y) + in_x) * (indepth + (4 - (indepth % 4))) + fd)];
+										sum += filtw[(((filw * fy) + fx) * (indepth + (0 + (indepth % 2))) + fd)]
+										* inw[(((inwidth * in_y) + in_x) * (indepth + (0 + (indepth % 2))) + fd)];
                  }
 
               }
@@ -174,7 +174,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
           //sum += doublearray[1];
 					sum = sum + doublearray[0];
 					sum = sum + doublearray[1];
-          outw[((outwidth * out_y) + out_x) * (outdepth + (4 - (outdepth % 4))) + f] = sum;
+          outw[((outwidth * out_y) + out_x) * (outdepth + (0 + (outdepth % 2))) + f] = sum;
 
           x += stride;
         }
