@@ -98,61 +98,47 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 	int filh = l->filter_height;
 	int filw = l->filter_width;
 	double* biases = l->biases->weights;
+  __m256d total = _mm256_setzero_pd();
 
 //	int tempfy;
 
-	//#pragma omp parallel for
+	#pragma omp parallel for
   for (int i = start; i <= end; i++) {
     volume_t* in  = inputs[i];
     volume_t* out = outputs[i];
     double* inw = in->weights;
     double* outw = out->weights;
+    double doublearray[4] __attribute__((aligned(32)));
 
 
-		#pragma omp parallel for
+		//#pragma omp parallel for
     for (int f = 0; f < outdepth; f++) {
       volume_t* filter = filts[f];
 			double thisbias = biases[f];
       double* filtw = filter->weights;
-      //int y_start = -l->pad;
-      //int x_start = -l->pad;
-			//int y = y_start;
-			//#pragma omp parallel for collapse(2)
+
 			int y = negpad;
       for (int out_y = 0; out_y < outheight; out_y++) {
         int x = negpad;
 				for (int out_x = 0; out_x < outwidth; out_x++) {
-          //int x = negpad + out_x * stride;
-					//int y = negpad + out_y * stride;
 					double sum = thisbias;
 
-          __m256d total = _mm256_setzero_pd();
+          total = _mm256_setzero_pd();
 
-          double doublearray[4] __attribute__((aligned(32)));
+          //double doublearray[4] __attribute__((aligned(32)));
 
           for (int fy = 0; fy < filh; fy++) {
             int in_y = y + fy;
             for (int fx = 0; fx < filw; fx++) {
               int in_x = x + fx;
               if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
-                /*for (int fd = 0; fd < indepth; fd++) {
-                  sum += filter->weights[((filw * fy) + fx) * indepth + fd]
-                  * in->weights[((inwidth * in_y) + in_x) * indepth + fd];
-                }*/
                  for (int fd = 0; fd < indepth/4*4; fd = fd + 4) {
-                   //filter->weights[((filw * fy) + fx) * indepth + fd]
-                   // in->weights[((inwidth * in_y) + in_x) * indepth + fd];
-                   //printf("fd: %d\n",fd);
-                   //printf("doub: %x\n",sizeof(double));
-                   //printf("%x\n",&(filtw[(((filw * fy) + fx) * (indepth + (4 - (indepth % 4))) + fd)]));
-                   //printf("%x\n",&(inw[(((inwidth * in_y) + in_x) * (indepth + (4 - (indepth % 4))) + fd)]));
                    __m256d filterm = _mm256_loadu_pd(&(filtw[(((filw * fy) + fx) * (indepth) + fd)]));
                    __m256d inm = _mm256_loadu_pd(&(inw[(((inwidth * in_y) + in_x) * (indepth) + fd)]));
                    __m256d mult = _mm256_mul_pd(filterm, inm);
                    total = _mm256_add_pd(total, mult);
                  }
                  for (int fd = indepth/4*4; fd < indepth; fd++) {
-                   //sum += filtw[((filw * fy) + fx) * indepth + fd] * inw[((inwidth * in_y) + in_x) * indepth + fd];
 										sum += filtw[(((filw * fy) + fx) * indepth + fd)]
 										* inw[(((inwidth * in_y) + in_x) * indepth + fd)];
                  }
@@ -163,10 +149,6 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 
           _mm256_store_pd(doublearray, total);
 
-          //printf("%lf\n", doublearray[1]);
-
-          //sum += doublearray[0];
-          //sum += doublearray[1];
 					sum = sum + doublearray[0];
 					sum = sum + doublearray[1];
           sum = sum + doublearray[2];
