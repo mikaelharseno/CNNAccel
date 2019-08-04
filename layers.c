@@ -131,7 +131,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 
           for (int fy = 0; fy < filh; fy++) {
             int in_y = y + fy;
-            for (int fx = 0; fx < filw/4*4; fx = fx + 4) {
+            /*for (int fx = 0; fx < filw/4*4; fx = fx + 4) {
               tempfx = fx;
               int in_x = x + fx;
               if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
@@ -189,8 +189,8 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
                  }
               }
               fx = tempfx;
-            }
-            for (int fx = filw/4*4; fx < filw; fx++) {
+            }*/
+            for (int fx = 0; fx < filw; fx++) {
               int in_x = x + fx;
               if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
                  for (int fd = 0; fd < indepth/4*4; fd = fd + 4) {
