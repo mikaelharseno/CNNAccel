@@ -99,6 +99,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 	int filh = l->filter_height;
 	int filw = l->filter_width;
 	double* biases = l->biases->weights;
+  int c1 = outdepth * outwidth;
 
 	#pragma omp parallel for
   for (int i = start; i <= end; i++) {
@@ -118,8 +119,11 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
       double* filtw = filter->weights;
 
 			int y = negpad;
+      int indout1 = f; // outwidth times outdepth times out_y (outermost)
+      //int indout2 = 0; // outdepth times out_x
       for (int out_y = 0; out_y < outheight; out_y++) {
         int x = negpad;
+        int indout2 = indout1;
 				for (int out_x = 0; out_x < outwidth; out_x++) {
 					double sum = thisbias;
 
@@ -153,10 +157,12 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 					//sum = sum + total[1];
           //sum = sum + total[2];
           //sum = sum + total[3];
-          outw[((outwidth * out_y) + out_x) * outdepth + f] = sum;
+          outw[indout2] = sum;
 
+          indout2 += outdepth;
           x += stride;
         }
+        indout1 += c1;
         y += stride;
       }
     }
