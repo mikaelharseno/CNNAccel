@@ -155,7 +155,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
     double* outw = out->weights;
     //double doublearray[4] __attribute__((aligned(32)));
     __m256d total = _mm256_setzero_pd();
-    zero = total;
+    __m256d zero = total;
     int tempfx;
 
 
