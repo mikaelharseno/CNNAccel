@@ -87,6 +87,7 @@ conv_layer_t* make_conv_layer(int input_width, int input_height, int input_depth
 // filter to the sum before putting it into the output volume.
 
 void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int start, int end) {
+  clock_t t1 = clock();
   int stride = l->stride;
 	volume_t** filts = l->filters;
 	int negpad = -l->pad;
@@ -100,7 +101,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 	int filw = l->filter_width;
 	double* biases = l->biases->weights;
 
-//	int tempfy;
+  clock_t t2 = clock();
 
 	#pragma omp parallel for
   for (int i = start; i <= end; i++) {
@@ -248,6 +249,9 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
       }
     }
   }
+  clock_t t3 = clock();
+  printf("Total : %lf\n")((double) (t3 - t1)) / CLOCKS_PER_SEC;
+  printf("Vars : %lf\n")((double) (t2 - t1)) / CLOCKS_PER_SEC;
 }
 
 void conv_load(conv_layer_t* l, const char* file_name) {
