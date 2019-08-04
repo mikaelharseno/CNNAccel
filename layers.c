@@ -142,7 +142,6 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 										sum += filtw[(((filw * fy) + fx) * indepth + fd)]
 										* inw[(((inwidth * in_y) + in_x) * indepth + fd)];
                  }
-
               }
             }
           }
