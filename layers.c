@@ -141,9 +141,9 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
                 int indfil = (ind1 + fx) * (indepth);
                 int indin = (ind2 + in_x) * (indepth);
                  for (int fd = 0; fd < newc; fd = fd + 4) {
-                   //__m256d filterm = _mm256_loadu_pd(&(filtw[indfil + fd]));
-                   //__m256d inm = _mm256_loadu_pd(&(inw[indin + fd]));
-                   __m256d mult = _mm256_mul_pd((__m256d) &(filtw[indfil + fd]),(__m256d) &(inw[indin + fd]));
+                   __m256d filterm = _mm256_loadu_pd(&(filtw[indfil + fd]));
+                   __m256d inm = _mm256_loadu_pd(&(inw[indin + fd]));
+                   __m256d mult = _mm256_mul_pd(filterm, inm);
                    total = _mm256_add_pd(total, mult);
                  }
                  for (int fd = newc; fd < indepth; fd++) {
