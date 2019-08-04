@@ -153,8 +153,9 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
     volume_t* out = outputs[i];
     double* inw = in->weights;
     double* outw = out->weights;
-    double doublearray[4] __attribute__((aligned(32)));
+    //double doublearray[4] __attribute__((aligned(32)));
     __m256d total = _mm256_setzero_pd();
+    zero = total;
     int tempfx;
 
 
@@ -173,7 +174,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 				for (int out_x = 0; out_x < outwidth; out_x++) {
 					double sum = thisbias;
 
-          total = _mm256_setzero_pd();
+          total = zero;
 
           for (int fy = 0; fy < filh; fy++) {
             int in_y = y + fy;
