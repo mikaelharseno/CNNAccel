@@ -141,7 +141,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
                    //total = _mm256_add_pd(total, mult);
                  }
                  for (int fd = indepth/4*4; fd < indepth; fd++) {
-										sum += filtw[indfil + fd] * inw[indin + fd];
+										//sum += filtw[indfil + fd] * inw[indin + fd];
                  }
               }
             }
