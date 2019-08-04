@@ -85,6 +85,7 @@ conv_layer_t* make_conv_layer(int input_width, int input_height, int input_depth
 // arrays, we must use the volume_get and volume_set commands to access elements
 // at a coordinate (x, y, d). Finally, we add the corresponding bias for the
 // filter to the sum before putting it into the output volume.
+
 void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int start, int end) {
   int stride = l->stride;
 	volume_t** filts = l->filters;
@@ -109,6 +110,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
     double* outw = out->weights;
     double doublearray[4] __attribute__((aligned(32)));
     __m256d total = _mm256_setzero_pd();
+    int tempfx;
 
 
 		//#pragma omp parallel for
@@ -129,7 +131,66 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 
           for (int fy = 0; fy < filh; fy++) {
             int in_y = y + fy;
-            for (int fx = 0; fx < filw; fx++) {
+            for (int fx = 0; fx < filw/4*4; fx = fx + 4) {
+              tempfx = fx;
+              int in_x = x + fx;
+              if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
+                 for (int fd = 0; fd < indepth/4*4; fd = fd + 4) {
+                   __m256d filterm = _mm256_loadu_pd(&(filtw[(((filw * fy) + fx) * (indepth) + fd)]));
+                   __m256d inm = _mm256_loadu_pd(&(inw[(((inwidth * in_y) + in_x) * (indepth) + fd)]));
+                   __m256d mult = _mm256_mul_pd(filterm, inm);
+                   total = _mm256_add_pd(total, mult);
+                 }
+                 for (int fd = indepth/4*4; fd < indepth; fd++) {
+										sum += filtw[(((filw * fy) + fx) * indepth + fd)]
+										* inw[(((inwidth * in_y) + in_x) * indepth + fd)];
+                 }
+              }
+              fx++;
+              in_x = x + fx;
+              if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
+                 for (int fd = 0; fd < indepth/4*4; fd = fd + 4) {
+                   __m256d filterm = _mm256_loadu_pd(&(filtw[(((filw * fy) + fx) * (indepth) + fd)]));
+                   __m256d inm = _mm256_loadu_pd(&(inw[(((inwidth * in_y) + in_x) * (indepth) + fd)]));
+                   __m256d mult = _mm256_mul_pd(filterm, inm);
+                   total = _mm256_add_pd(total, mult);
+                 }
+                 for (int fd = indepth/4*4; fd < indepth; fd++) {
+										sum += filtw[(((filw * fy) + fx) * indepth + fd)]
+										* inw[(((inwidth * in_y) + in_x) * indepth + fd)];
+                 }
+              }
+              fx++;
+              in_x = x + fx;
+              if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
+                 for (int fd = 0; fd < indepth/4*4; fd = fd + 4) {
+                   __m256d filterm = _mm256_loadu_pd(&(filtw[(((filw * fy) + fx) * (indepth) + fd)]));
+                   __m256d inm = _mm256_loadu_pd(&(inw[(((inwidth * in_y) + in_x) * (indepth) + fd)]));
+                   __m256d mult = _mm256_mul_pd(filterm, inm);
+                   total = _mm256_add_pd(total, mult);
+                 }
+                 for (int fd = indepth/4*4; fd < indepth; fd++) {
+										sum += filtw[(((filw * fy) + fx) * indepth + fd)]
+										* inw[(((inwidth * in_y) + in_x) * indepth + fd)];
+                 }
+              }
+              fx++;
+              in_x = x + fx;
+              if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
+                 for (int fd = 0; fd < indepth/4*4; fd = fd + 4) {
+                   __m256d filterm = _mm256_loadu_pd(&(filtw[(((filw * fy) + fx) * (indepth) + fd)]));
+                   __m256d inm = _mm256_loadu_pd(&(inw[(((inwidth * in_y) + in_x) * (indepth) + fd)]));
+                   __m256d mult = _mm256_mul_pd(filterm, inm);
+                   total = _mm256_add_pd(total, mult);
+                 }
+                 for (int fd = indepth/4*4; fd < indepth; fd++) {
+										sum += filtw[(((filw * fy) + fx) * indepth + fd)]
+										* inw[(((inwidth * in_y) + in_x) * indepth + fd)];
+                 }
+              }
+              fx = tempfx;
+            }
+            for (int fx = filw/4*4; fx < filw; fx++) {
               int in_x = x + fx;
               if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
                  for (int fd = 0; fd < indepth/4*4; fd = fd + 4) {
@@ -161,7 +222,6 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
     }
   }
 }
-
 
 void conv_load(conv_layer_t* l, const char* file_name) {
   int filter_width;
