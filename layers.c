@@ -98,7 +98,6 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 	int filh = l->filter_height;
 	int filw = l->filter_width;
 	double* biases = l->biases->weights;
-  __m256d total = _mm256_setzero_pd();
 
 //	int tempfy;
 
@@ -109,6 +108,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
     double* inw = in->weights;
     double* outw = out->weights;
     double doublearray[4] __attribute__((aligned(32)));
+    __m256d total = _mm256_setzero_pd();
 
 
 		//#pragma omp parallel for
