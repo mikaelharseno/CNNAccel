@@ -193,9 +193,36 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
             for (int fx = 0; fx < filw; fx++) {
               int in_x = x + fx;
               if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
-                 for (int fd = 0; fd < indepth/4*4; fd = fd + 4) {
-                   __m256d filterm = _mm256_loadu_pd(&(filtw[(((filw * fy) + fx) * (indepth) + fd)]));
-                   __m256d inm = _mm256_loadu_pd(&(inw[(((inwidth * in_y) + in_x) * (indepth) + fd)]));
+                 for (int fd = 0; fd < (indepth/4)/4*4; fd = fd + 4) {
+                   tempfx = fd;
+                   __m256d filterm = _mm256_loadu_pd(&(filtw[(((filw * fy) + fx) * (indepth) + 4*fd)]));
+                   __m256d inm = _mm256_loadu_pd(&(inw[(((inwidth * in_y) + in_x) * (indepth) + 4*fd)]));
+                   __m256d mult = _mm256_mul_pd(filterm, inm);
+                   total = _mm256_add_pd(total, mult);
+
+                   fd++;
+                   __m256d filterm = _mm256_loadu_pd(&(filtw[(((filw * fy) + fx) * (indepth) + 4*fd)]));
+                   __m256d inm = _mm256_loadu_pd(&(inw[(((inwidth * in_y) + in_x) * (indepth) + 4*fd)]));
+                   __m256d mult = _mm256_mul_pd(filterm, inm);
+                   total = _mm256_add_pd(total, mult);
+
+                   fd++;
+                   __m256d filterm = _mm256_loadu_pd(&(filtw[(((filw * fy) + fx) * (indepth) + 4*fd)]));
+                   __m256d inm = _mm256_loadu_pd(&(inw[(((inwidth * in_y) + in_x) * (indepth) + 4*fd)]));
+                   __m256d mult = _mm256_mul_pd(filterm, inm);
+                   total = _mm256_add_pd(total, mult);
+
+                   fd++;
+                   __m256d filterm = _mm256_loadu_pd(&(filtw[(((filw * fy) + fx) * (indepth) + 4*fd)]));
+                   __m256d inm = _mm256_loadu_pd(&(inw[(((inwidth * in_y) + in_x) * (indepth) + 4*fd)]));
+                   __m256d mult = _mm256_mul_pd(filterm, inm);
+                   total = _mm256_add_pd(total, mult);
+
+                   fd = tempfx;
+                 }
+                 for (int fd = (indepth/4)/4*4; fd < (indepth/4); fd = fd + 1) {
+                   __m256d filterm = _mm256_loadu_pd(&(filtw[(((filw * fy) + fx) * (indepth) + 4*fd)]));
+                   __m256d inm = _mm256_loadu_pd(&(inw[(((inwidth * in_y) + in_x) * (indepth) + 4*fd)]));
                    __m256d mult = _mm256_mul_pd(filterm, inm);
                    total = _mm256_add_pd(total, mult);
                  }
