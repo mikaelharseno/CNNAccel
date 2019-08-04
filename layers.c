@@ -235,12 +235,12 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
             }
           }
 
-          _mm256_store_pd(doublearray, total);
+          //_mm256_store_pd(doublearray, total);
 
-					sum = sum + doublearray[0];
-					sum = sum + doublearray[1];
-          sum = sum + doublearray[2];
-          sum = sum + doublearray[3];
+					sum = sum + total[0];
+					sum = sum + total[1];
+          sum = sum + total[2];
+          sum = sum + total[3];
           outw[((outwidth * out_y) + out_x) * outdepth + f] = sum;
 
           x += stride;
