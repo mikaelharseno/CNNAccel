@@ -174,7 +174,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 				for (int out_x = 0; out_x < outwidth; out_x++) {
 					double sum = thisbias;
 
-          total = _mm256_setzero_pd();
+          total = zero;
 
           for (int fy = 0; fy < filh; fy++) {
             int in_y = y + fy;
