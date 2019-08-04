@@ -99,8 +99,8 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
   int afilh = l->filter_height;
   int afilw = l->filter_width;
   double* abiases = l->biases->weights;
-  int ac1 = outdepth * outwidth;
-  int anewc = indepth/4*4;
+  int ac1 = aoutdepth * aoutwidth;
+  int anewc = aindepth/4*4;
   //private(stride, filts, negpad, indepth, inheight, inwidth, outdepth, outheight, outwidth, filh, filw, biases, c1, newc)
 	#pragma omp parallel for
   for (int i = start; i <= end; i++) {
