@@ -101,6 +101,21 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
   double* abiases = l->biases->weights;
   int ac1 = aoutdepth * aoutwidth;
   int anewc = aindepth/4*4;
+  /*int stride = l->stride;
+  volume_t** filts = l->filters;
+  int negpad = -l->pad;
+  int indepth = l->input_depth;
+  int inheight = l->input_height;
+  int inwidth = l->input_width;
+  int outdepth = l->output_depth;
+  int outheight = l->output_height;
+  int outwidth = l->output_width;
+  int filh = l->filter_height;
+  int filw = l->filter_width;
+  double* biases = l->biases->weights;
+  int c1 = outdepth * outwidth;
+  int newc = indepth/4*4;*/
+
   //private(stride, filts, negpad, indepth, inheight, inwidth, outdepth, outheight, outwidth, filh, filw, biases, c1, newc)
 	#pragma omp parallel for
   for (int i = start; i <= end; i++) {
@@ -169,11 +184,15 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
               if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
                 int indfil = (ind1 + fx) * (indepth);
                 int indin = (ind2 + in_x) * (indepth);
+                int fdfilind = indfil;
+                int fdinind = indin;
                  for (int fd = 0; fd < newc; fd = fd + 4) {
-                   __m256d filterm = _mm256_loadu_pd(&(filtw[indfil + fd]));
-                   __m256d inm = _mm256_loadu_pd(&(inw[indin + fd]));
+                   __m256d filterm = _mm256_loadu_pd(&(filtw[fdfilind]));
+                   __m256d inm = _mm256_loadu_pd(&(inw[fdinind]));
                    __m256d mult = _mm256_mul_pd(filterm, inm);
                    total = _mm256_add_pd(total, mult);
+                   fdfilind += 4;
+                   fdinind += 4;
                  }
                  for (int fd = newc; fd < indepth; fd++) {
 										sum += filtw[indfil + fd] * inw[indin + fd];
