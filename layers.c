@@ -154,13 +154,13 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
     double* inw = in->weights;
     double* outw = out->weights;
     //double doublearray[4] __attribute__((aligned(32)));
-    __m256d total = _mm256_setzero_pd();
+    __m256d total;
     //__m256d zero = _mm256_setzero_pd();
-    int tempfx;
 
 
 		//#pragma omp parallel for
     for (int f = 0; f < outdepth; f++) {
+	//		__m256d total = _mm256_setzero_pd();
       volume_t* filter = filts[f];
 			double thisbias = biases[f];
       double* filtw = filter->weights;
