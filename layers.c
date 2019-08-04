@@ -123,7 +123,7 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 				for (int out_x = 0; out_x < outwidth; out_x++) {
 					double sum = thisbias;
 
-          total = _mm256_setzero_pd();
+          //total = _mm256_setzero_pd();
 
           for (int fy = 0; fy < filh; fy++) {
             int in_y = y + fy;
@@ -134,14 +134,14 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
               if (in_y >= 0 && in_y < inheight && in_x >= 0 && in_x < inwidth) {
                 int indfil = (ind1 + fx) * (indepth);
                 int indin = (ind2 + in_x) * (indepth);
-                 for (int fd = 0; fd < indepth/4*4; fd = fd + 4) {
-                   //__m256d filterm = _mm256_loadu_pd(&(filtw[indfil + fd]));
-                   //__m256d inm = _mm256_loadu_pd(&(inw[indin + fd]));
-                   //__m256d mult = _mm256_mul_pd(filterm, inm);
-                   //total = _mm256_add_pd(total, mult);
-                 }
-                 for (int fd = indepth/4*4; fd < indepth; fd++) {
-										//sum += filtw[indfil + fd] * inw[indin + fd];
+                 /*for (int fd = 0; fd < indepth/4*4; fd = fd + 4) {
+                   __m256d filterm = _mm256_loadu_pd(&(filtw[indfil + fd]));
+                   __m256d inm = _mm256_loadu_pd(&(inw[indin + fd]));
+                   __m256d mult = _mm256_mul_pd(filterm, inm);
+                   total = _mm256_add_pd(total, mult);
+                 }*/
+                 for (int fd = 0; fd < indepth; fd++) {
+										sum += filtw[indfil + fd] * inw[indin + fd];
                  }
               }
             }
@@ -149,10 +149,10 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
 
           //_mm256_store_pd(doublearray, total);
 
-					sum = sum + total[0];
-					sum = sum + total[1];
-          sum = sum + total[2];
-          sum = sum + total[3];
+					//sum = sum + total[0];
+					//sum = sum + total[1];
+          //sum = sum + total[2];
+          //sum = sum + total[3];
           outw[((outwidth * out_y) + out_x) * outdepth + f] = sum;
 
           x += stride;
