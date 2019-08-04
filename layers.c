@@ -100,7 +100,8 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
   int filw = l->filter_width;
   double* biases = l->biases->weights;
   int c1 = outdepth * outwidth;
-	#pragma omp parallel for private(stride, filts, negpad, indepth, inheight, inwidth, outdepth, outheight, outwidth, filh, filw, biases, c1)
+  int newc = indepth/4*4;
+	#pragma omp parallel for private(stride, filts, negpad, indepth, inheight, inwidth, outdepth, outheight, outwidth, filh, filw, biases, c1, newc)
   for (int i = start; i <= end; i++) {
     /*int stride = l->stride;
   	volume_t** filts = l->filters;
@@ -115,8 +116,8 @@ void conv_forward(conv_layer_t* l, volume_t** inputs, volume_t** outputs, int st
   	int filw = l->filter_width;
   	double* biases = l->biases->weights;
     int c1 = outdepth * outwidth;
-
     int newc = indepth/4*4;*/
+
     volume_t* in  = inputs[i];
     volume_t* out = outputs[i];
     double* inw = in->weights;
