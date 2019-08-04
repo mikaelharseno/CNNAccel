@@ -151,7 +151,7 @@ void net_classify(network_t* net, volume_t** input, double** likelihoods, int n)
   for (int i = 0; i < n; i++) {
 		//batch_t* b = make_batch(net, 1);
     copy_volume(b[0][i], input[i]);
-    //net_forward(net, b, 0, 0);
+    net_forward(net, b, i, i);
     //for (int j = 0; j < NUM_CLASSES; j++) {
     //  likelihoods[i][j] = b[11][i]->weights[j];
     //}
@@ -160,7 +160,7 @@ void net_classify(network_t* net, volume_t** input, double** likelihoods, int n)
 	//b[0] = input; // Can this be used in some way?
 	//b[0] = input;
 
-	net_forward(net, b, 0, n-1);
+	//net_forward(net, b, 0, n-1);
 
 //	#pragma omp parallel for
   for (int i = 0; i < n; i++) {
